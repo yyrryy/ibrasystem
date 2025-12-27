@@ -96,7 +96,7 @@ else:
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'restored_db',
             'USER':'myprojectuser',
-            'PASSWORD':'ibra123',
+            'PASSWORD':'gadwad123',
             'HOST':'localhost',
             'PORT':'5432'
         }
