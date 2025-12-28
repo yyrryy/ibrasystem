@@ -120,10 +120,13 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+STATIC_URL = '/static/'
+
 STATICFILES_DIRS = [
-    join(BASE_DIR, "ibra/static"),
+    BASE_DIR / 'static',
 ]
 
+# STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -139,8 +142,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = join(BASE_DIR, 'static/')
+
+# STATIC_ROOT = join(BASE_DIR, 'static/')
 
 
 
