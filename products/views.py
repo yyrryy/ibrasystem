@@ -524,7 +524,8 @@ def updateproduct(request):
         'category_id':request.POST.get('category'),
         'mark_id':request.POST.get('marque'),
         'diametre':request.POST.get('diametre'),
-        'stock':product.stocktotal
+        'stock':product.stocktotal,
+        'uniqcode':product.uniqcode
     }
     if image:
         print('sending new image')
