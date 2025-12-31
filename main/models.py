@@ -40,6 +40,7 @@ class Carlogos(models.Model):
 
 
 class Produit(models.Model):
+    uniqcode=models.CharField(max_length=500, null=True, unique=True)
     name=models.CharField(max_length=500, null=True)
     block=models.CharField(max_length=500, null=True, default=None)
     # code = classement
