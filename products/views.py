@@ -10505,3 +10505,15 @@ def grouper(request):
     return JsonResponse({
     'success':True
     })
+
+def yeardataavcl(request):
+    year=request.GET.get('year')
+
+    bons= Avoirclient.objects.filter(date__year=year).order_by('-date')
+    total=bons.aggregate(Sum('total')).get('total__sum')
+    ctx={
+        'title':'Avoir Client',
+        'bons':bons,
+        'total':total,
+    }
+    return render(request, 'avoircltrs.html', ctx)
