@@ -8561,20 +8561,16 @@ def notavailable(request):
     return render(request, 'notavailable.html', ctx)
 
 def cartpage(request):
-    res=req.get('http://ibraparts.ma/products/getcarts')
-
     ctx={
         'carts':Cart.objects.all().order_by('-total').exclude(total=0),
-        'cartsserver':list(json.loads(res.text)['carts'])
+        'cartsserver':[]
     }
     return render(request, 'cartspage.html', ctx)
 
 def reliquatpage(request):
-    res=req.get('http://ibraparts.ma/products/getwishs')
-    print(list(json.loads(res.text)['carts']))
     ctx={
         'carts':Wich.objects.all().order_by('-total'),
-        'wishserver':list(json.loads(res.text)['carts'])
+        'wishserver':[]
     }
     return render(request, 'reliquatpage.html', ctx)
 
