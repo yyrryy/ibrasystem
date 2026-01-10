@@ -6966,16 +6966,16 @@ def searchforlistfc(request):
 
     if startdate=='0' and enddate=='0':
         print('>>>> search list fc, startdate and enddate are 0')
-        bons=Facture.objects.filter(q_objects).filter(date__year=thisyear).order_by('-facture_no')[:50]
-        total=round(Facture.objects.filter(q_objects).filter(date__year=thisyear).order_by('-facture_no').aggregate(Sum('total'))['total__sum'] or 0, 2)
+        bons=Facture.objects.filter(q_objects).order_by('-facture_no')[:50]
+        total=round(Facture.objects.filter(q_objects).order_by('-facture_no').aggregate(Sum('total'))['total__sum'] or 0, 2)
 
     else:
         bons=Facture.objects.filter(q_objects).filter(date__range=[startdate, enddate]).order_by('-facture_no')[:50]
         total=round(Facture.objects.filter(q_objects).filter(date__range=[startdate, enddate]).order_by('-facture_no').aggregate(Sum('total'))['total__sum'] or 0, 2)
 
     # if year=='0':
-    #     bons=Facture.objects.filter(q_objects).filter(date__year=thisyear).order_by('-facture_no')[:50]
-    #     total=round(Facture.objects.filter(q_objects).filter(date__year=thisyear).aggregate(Sum('total'))['total__sum'] or 0, 2)
+    #     bons=Facture.objects.filter(q_objects).order_by('-facture_no')[:50]
+    #     total=round(Facture.objects.filter(q_objects).aggregate(Sum('total'))['total__sum'] or 0, 2)
     # else:
     #     bons=Facture.objects.filter(q_objects).filter(date__year=year).order_by('-facture_no')[:50]
     #     total=round(Facture.objects.filter(q_objects).filter(date__year=year).aggregate(Sum('total'))['total__sum'] or 0, 2)
