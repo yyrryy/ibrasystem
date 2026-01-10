@@ -148,21 +148,23 @@
 
         </table>
         <!-- footer total -->
-        <div class="d-flex justify-content-between">
-          <small>
-            page: {{forloop.counter}}/{{orderitems|length}}
-          </small>
-          <div class="text-center d-flex justify-content-between" style="background: #aeaeae8c;
-          font-size: 13px; width:14em;">
-            <div>Total</div>
-            <div style="font-size: 16px; margin-right: 13px;">
-              <strong>
-                {{order.total|floatformat:2|intspace}}
-              </strong>
-            </div>
-          </div>
-
-
+        <table class="table table-bordered" style="border:1px solid;">
+          <tr>
+            <td>
+              <b>Total HT: {{ht|floatformat:2}}</b>
+            </td>
+            <td>
+              <b>TVA: {{tva|floatformat:2}}</b>
+            </td>
+            <td class="text-end">
+              <b>Total TTC: {{order.total|floatformat:2}}</b>
+            </td>
+          </tr>
+        </table>
+        <div style="font-size:11px">
+          LOT ARGANA N° B25 - AIT MELLOUL <br>
+          IF: 15251205 - Patente: 49815086 - CNSS: 5921079 - ICE: 001667720000027 <br>
+          Fixe: +212 528 24 35 17 - Tel: 06 66 03 72 81
         </div>
 
       </div>

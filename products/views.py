@@ -9334,10 +9334,15 @@ def bonavoirprint(request, id):
     # split the orderitems into chunks of 10 items
     orderitems=list(orderitems)
     orderitems=[orderitems[i:i+36] for i in range(0, len(orderitems), 36)]
+    ht=round(order.total/1.2, 2)
+    tva=order.total-ht
+
     ctx={
         'title':f'Bon avoir {order.no}',
         'order':order,
-        'orderitems':orderitems
+        'orderitems':orderitems,
+        'ht':ht,
+        'tva':tva,
     }
     return render(request, 'bonavoirprint.html', ctx)
 
