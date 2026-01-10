@@ -2031,14 +2031,14 @@ def listreglementbl(request):
         'today':timezone.now().date()
     }
     if reglements:
-        ctx['total']=round(PaymentClientbl.objects.filter(date__year=thisyear).aggregate(Sum('amount'))['amount__sum'], 2)
+        ctx['total']=round(PaymentClientbl.objects.aggregate(Sum('amount'))['amount__sum'], 2)
 
     return render(request, 'listreglementbl.html', ctx)
 
 
 def listreglementsupp(request):
     thisyear=timezone.now().year
-    reglements=PaymentSupplier.objects.filter(date__year=thisyear).order_by('-id')[:50]
+    reglements=PaymentSupplier.objects.order_by('-id')[:50]
     ctx={
         'title':'List des reglements Fournisseur',
         'reglements':reglements,
@@ -2046,15 +2046,14 @@ def listreglementsupp(request):
         'today':timezone.now().date()
     }
     if reglements:
-        ctx['total']=round(PaymentSupplier.objects.filter(date__year=thisyear).aggregate(Sum('amount'))['amount__sum'], 2)
+        ctx['total']=round(PaymentSupplier.objects.aggregate(Sum('amount'))['amount__sum'], 2)
     return render(request, 'listreglementsupp.html', ctx)
 
 
 def listreglementfc(request):
     thisyear=timezone.now().year
     # add :50 to this
-    reglements=PaymentClientfc.objects.filter(date__year=thisyear).order_by('-echance')[:50]
-    print(round(PaymentClientfc.objects.filter(date__year=thisyear).aggregate(Sum('amount'))['amount__sum'] or 0, 2))
+    reglements=PaymentClientfc.objects.order_by('-echance')[:50]
     ctx={
         'title':'List des reglements CL fc',
         'reglements':reglements,
@@ -2063,7 +2062,7 @@ def listreglementfc(request):
 
     }
     if reglements:
-        ctx['total']=round(PaymentClientfc.objects.filter(date__year=thisyear).aggregate(Sum('amount'))['amount__sum'] or 0, 2)
+        ctx['total']=round(PaymentClientfc.objects.aggregate(Sum('amount'))['amount__sum'] or 0, 2)
 
 
     return render(request, 'listreglementfc.html', ctx)
