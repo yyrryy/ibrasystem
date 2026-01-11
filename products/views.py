@@ -6318,8 +6318,8 @@ def searchforlistbl(request):
     # we dont need this
     if(term==''):
 
-        bons=Bonlivraison.objects.filter(date__year=thisyear)[:50]
-        total=round(Bonlivraison.objects.filter(date__year=thisyear).aggregate(Sum('total'))['total__sum'] or 0, 2)
+        bons=Bonlivraison.objects.all()[:50]
+        total=round(Bonlivraison.objects.all().aggregate(Sum('total'))['total__sum'] or 0, 2)
         trs=''
         for i in bons:
             trs+=f'''
@@ -6413,8 +6413,8 @@ def searchforlistbl(request):
             )
     print(startdate, enddate)
     if startdate=='0' and enddate=='0':
-        bons=Bonlivraison.objects.filter(q_objects).filter(date__year=thisyear).order_by('-bon_no')[:50]
-        total=round(Bonlivraison.objects.filter(q_objects).filter(date__year=thisyear).order_by('-bon_no').aggregate(Sum('total'))['total__sum'] or 0, 2)
+        bons=Bonlivraison.objects.filter(q_objects).order_by('-bon_no')[:50]
+        total=round(Bonlivraison.objects.filter(q_objects).order_by('-bon_no').aggregate(Sum('total'))['total__sum'] or 0, 2)
     else:
         bons=Bonlivraison.objects.filter(q_objects).filter(date__range=[startdate, enddate]).order_by('-bon_no')[:50]
         total=round(Bonlivraison.objects.filter(q_objects).filter(date__range=[startdate, enddate]).order_by('-bon_no').aggregate(Sum('total'))['total__sum'] or 0, 2)
