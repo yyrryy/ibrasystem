@@ -317,7 +317,7 @@ def isadmin(user):
 
 # Create your views here.
 def home(request):
-        if request.method=='POST':
+    if request.method=='POST':
         # get user and password
         username=request.POST.get('username')
         password=request.POST.get('password')
