@@ -367,6 +367,7 @@ class Facture(models.Model):
     transport=models.CharField(max_length=500, null=True, default=None)
     # printed indicates that this facture was received by the client
     printed = models.BooleanField(default=False)
+    hascopy = models.BooleanField(default=False)
     note=models.TextField(default=None, null=True, blank=True)
     # true if facture is accounting
     isaccount=models.BooleanField(default=False)
