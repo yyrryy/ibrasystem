@@ -538,13 +538,6 @@ def updateproduct(request):
     if not res.status_code == 200:
             print('Error message:', res.text)
     print('>>>>>>', request.POST.getlist('cars'))
-    # req.get('http://ibraparts.ma/products/updatepdctdata', {
-    #     'password':'gadwad123',
-    #     'id':request.POST.get('productid'),
-    #     'ref':request.POST.get('ref').lower().strip(),
-    #     'stocktotal':product.stocktotal,
-    #     'cars':json.dumps(request.POST.getlist('cars')),
-    # })
     return JsonResponse({
         'success':True
     })
@@ -836,7 +829,8 @@ def addfacture(request):
         client_id=clientid,
         salseman_id=repid,
         transport=transport,
-        note=note
+        note=note,
+        hascopy=False
     )
     if len(json.loads(products))>0:
         with transaction.atomic():
