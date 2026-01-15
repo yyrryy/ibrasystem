@@ -317,20 +317,22 @@ def isadmin(user):
 
 # Create your views here.
 def home(request):
-    ctx={
-        'promotion':Promotion.objects.order_by('info')
-    }
-    # print(request.user)
-    # print(request.user.groups.first())
-    # if request.user.groups.first():
-    #     if (request.user.groups.first().name=='salsemen'):
-    #         return redirect(catalog)
-    #     if (request.user.groups.first().name=='accounting'):
-    #         return redirect('main:orders')
-    #     if (request.user.groups.first().name=='admin'):
-    #         return redirect('main:orders')
-    # return redirect('main:loginpage')
-    return render(request, 'main.html', ctx)
+        if request.method=='POST':
+        # get user and password
+        username=request.POST.get('username')
+        password=request.POST.get('password')
+        # check if user exist
+        user=authenticate(username=username, password=password)
+        if user:
+            group=user.groups.all().first().name
+            if group == 'admin':
+                login(request, user)
+                return redirect('main:ibra')
+    if request.user.groups.all():
+        group=request.user.groups.all().first().name
+        if group == 'admin':
+            return redirect('main:ibra')
+    return render(request, 'brahim.html')
 
 
 def about(request):
