@@ -567,45 +567,7 @@ def addbulk(request):
 @user_passes_test(tocatalog, login_url='main:loginpage')
 @login_required(login_url='main:loginpage')
 def commande(request):
-    # clientname=request.POST.get('clientname')
-    # clientaddress=request.POST.get('clientaddress')
-    # clientphone=request.POST.get('clientphone')
-
-    client=Client.objects.get(pk=request.POST.get('client'))
-    cart=Cart.objects.filter(user=request.user).first()
-    if cart:
-        cartitems=Cartitems.objects.filter(cart=cart)
-        notesorder=request.POST.get('notesorder')
-        cmndfromclient=request.POST.get('cmndfromclient')
-        if cmndfromclient == 'true':
-            order=Order.objects.create(client=client, salseman=client.represent,  modpymnt='--', modlvrsn='--',total=cart.total, isclientcommnd=True, note=notesorder)
-        else:
-            rep=Represent.objects.get(user_id=request.user.id)
-            order=Order.objects.create(client_id=request.POST.get('client'), salseman=rep,  modpymnt='--', modlvrsn='--',total=cart.total, note=notesorder)
-        #Ordersnotif.objects.create(user_id=request.user.id)
-
-        # totalremise=request.POST.get('totalremise', 0)
-        totalofdisponible=0
-        totalofnotdisponible=0
-        for i in cartitems:
-            if i.product.stocktotal>0:
-                totalofdisponible+=i.total
-                Orderitem.objects.create(order=order, ref=i.product.ref, name=i.product.name, qty=int(i.qty), product=i.product, remise=i.product.remise, price=i.product.sellprice, total=i.total)
-                i.delete()
-            else:
-                totalofnotdisponible+=i.total
-        order.total=totalofdisponible
-        order.save()
-
-        # return a json res
-        cart.total=totalofnotdisponible
-        cart.save()
-    # send_mail(message='Nouveau commande.', subject=f'Nouveau commande. #{order.id}')
-    #threading.Thread(target=send_mail, args=('Nouveau commande.', f'Nouveau commande. #{order.id}', 'abdelwahedaitali@gmail.com', ['aitaliabdelwahed@gmail.com'], False)).start()
-        return JsonResponse({
-            'valid':True,
-            'message':'Commande enregistrée avec succès',
-        })
+    
     else:
         print('no cart')
         return JsonResponse({
@@ -614,98 +576,7 @@ def commande(request):
 
 
 def repcommande(request):
-    client=Client.objects.get(pk=request.POST.get('client'))
-    notesorder=request.POST.get('notesorder')
-    cmndfromclient=request.POST.get('cmndfromclient')
-    # uncomment this in server
-    #import requests as req
-    # cart will take from Cartrep
-    repcart=Repcart.objects.filter(rep_id=request.user.represent.id, client=client).first()
-    print('>>>>>>>>>>>>>', request.user.represent.name, client.name)
-    print(repcart.total)
-    if repcart and repcart.total > 0:
-        repcartitems=Repcartitem.objects.filter(repcart=repcart)
-        itemsdisponible=[]
-        itemsnotdisponible=[]
-        totalofdispounible=0
-        totalofnotdispounible=0
-        # WE NEED MORE CODE HERE
-        for i in repcartitems:
-            if i.product.stocktotal>0:
-                totalofdispounible+=i.total
-                item={
-                    'ref':i.product.ref,
-                    'name':i.product.name,
-                    'qty':i.qty,
-                    'price':i.product.sellprice,
-                    'total':i.total,
-                    'remise':i.product.remise,
-                    'productid':i.product.id,
-                }
-                itemsdisponible.append(item)
-                i.delete()
-            else:
-                totalofnotdispounible+=i.total
-                item={
-                    'ref':i.product.ref,
-                    'name':i.product.name,
-                    'qty':i.qty,
-                    'price':i.product.sellprice,
-                    'total':i.total,
-                    'remise':i.product.remise,
-                    'productid':i.product.id,
-                }
-                itemsnotdisponible.append(item)
-                i.delete()
-            repcart.total=0
-            repcart.save()
-        print(totalofdispounible, totalofnotdispounible)
-        rep=request.user.represent.id
-        # order server
-        # order=Order.objects.create(client_id=request.POST.get('client'), salseman_id=rep,  modpymnt='--', modlvrsn='--',total=totalofdispounible, note=notesorder, senttoserver=True)
-        order=Order.objects.create(client_id=request.POST.get('client'), salseman_id=rep,  modpymnt='--', modlvrsn='--',total=totalofdispounible, note=notesorder)
-        for i in itemsdisponible:
-            Orderitem.objects.create(order=order, ref=i['ref'], name=i['name'], qty=int(i['qty']), product_id=i['productid'], remise=i['remise'], price=i['price'], total=i['total'])
-        # server code, try to send order to local server
-        # try:
-        #     req.get('http://ibraparts.ddns.net/commandfromserver', {'items':json.dumps(itemsdisponible), 'clientcode':client.code, 'total':totalofdispounible, 'notesorder':notesorder, 'cmndfromclient':'non', 'userid':request.user.id, 'rep':rep})
-        # if its not sent, make order senttoserver False and send a telegram message
-        # except:
-        #     order.senttoserver=False
-        #     order.save()
-        #     async def send_message_to_group(group_chat_id, message_text):
-        #         await bot.send_message(chat_id=group_chat_id, text=message_text)
-        #     # Initialize the bot
-        #     bot = telegram.Bot(token=TOKEN)
-        #     message_text = 'Nouveau commande server'
-        #
-        #     # Send message to the group
-        #     asyncio.run(send_message_to_group(group_chat_id, message_text))
-
-        if len(itemsnotdisponible)>0:
-            print('>>>>> it has reliquat')
-            # code server
-            # order=Order.objects.create(client_id=request.POST.get('client'), salseman_id=rep,  modpymnt='--', modlvrsn='--',total=totalofnotdispounible, note=notesorder+' Reliquat', senttoserver=True)
-            order=Order.objects.create(client_id=request.POST.get('client'), salseman_id=rep,  modpymnt='--', modlvrsn='--',total=totalofnotdispounible, note=notesorder+' Reliquat')
-            for i in itemsnotdisponible:
-                Orderitem.objects.create(order=order, ref=i['ref'], name=i['name'], qty=int(i['qty']), product_id=i['productid'], remise=i['remise'], price=i['price'], total=i['total'])
-            # try:
-            #     req.get('http://ibraparts.ddns.net/commandfromserver', {'items':json.dumps(itemsnotdisponible), 'clientcode':client.code, 'total':totalofnotdispounible, 'notesorder':notesorder+' Reliquat', 'cmndfromclient':cmndfromclient, 'userid':request.user.id, 'rep':rep})
-            # except:
-            #     order.senttoserver=False
-            #     order.save()
-            #     async def send_message_to_group(group_chat_id, message_text):
-            #         await bot.send_message(chat_id=group_chat_id, text=message_text)
-            #     # Initialize the bot
-            #     bot = telegram.Bot(token=TOKEN)
-            #     message_text = 'Nouveau commande server'
-            #
-            #     # Send message to the group
-            #     asyncio.run(send_message_to_group(group_chat_id, message_text))
-        return JsonResponse({
-            'valid':True,
-            'message':'Commande enregistrée avec succès',
-        })
+    
     else:
         # this means that the cart is empty
         return JsonResponse({
@@ -1147,30 +1018,7 @@ def productdata(request):
     })
 def addtocart(request):
     # use try except cause the cart may noto be created
-    productid=request.GET.get('productid')
-    qty=request.GET.get('qty')
-    print('>>>>>>>>>', productid, qty)
-    product=Produit.objects.get(pk=productid)
-    total=round(int(qty)*product.prixnet, 2)
-    try:
-        cart=Cart.objects.get(user=request.user)
-        # check if product alrady exist
-        exist=Cartitems.objects.filter(cart=cart, product=product)
-        if exist:
-            print('>>>>>>> item already')
-            return JsonResponse({
-                'success':False,
-                'message':'Produit commandé deja'
-            })
-        else:
-            # if not update total and create item in the same cart
-            cart.total=round(cart.total+total, 2)
-            Cartitems.objects.create(cart=cart, product=product, qty=qty, total=total)
-            cart.save()
-    except Exception as e:
-        print('Exception, in addtocart', e)
-        cart=Cart.objects.create(user=request.user, total=total)
-        Cartitems.objects.create(cart=cart, product=product, qty=qty, total=total)
+    
     return JsonResponse({
         'success':True
         })
