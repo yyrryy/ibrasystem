@@ -576,12 +576,10 @@ def commande(request):
 
 def repcommande(request):
     
-    else:
-        # this means that the cart is empty
-        return JsonResponse({
-            'valid':False,
-            'message':'Panier vide'
-        })
+    return JsonResponse({
+        'valid':False,
+        'message':'Panier vide'
+    })
 
 
 # finish this userisclient
