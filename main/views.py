@@ -568,11 +568,10 @@ def addbulk(request):
 @login_required(login_url='main:loginpage')
 def commande(request):
     
-    else:
-        print('no cart')
-        return JsonResponse({
-            'valid':False
-        })
+
+    return JsonResponse({
+        'valid':False
+    })
 
 
 def repcommande(request):
