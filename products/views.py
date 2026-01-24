@@ -6458,7 +6458,7 @@ def searchforlistbl(request):
             '''
 
     return JsonResponse({
-        'trs':render(request, 'bllist.html', {'bons':bons}).content.decode('utf-8')
+        'trs':render(request, 'bllist.html', {'bons':bons}).content.decode('utf-8'),
         'total':total
     })
 
