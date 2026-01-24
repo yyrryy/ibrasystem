@@ -3719,7 +3719,7 @@ def filterbldate(request):
           </tr>
         '''
     ctx={
-        'trs':trs
+        'trs':render(request, 'bllist.html', {'bons':bons}).content.decode('utf-8'),
     }
     if bons:
         ctx['total']=round(Bonlivraison.objects.filter(date__range=[startdate, enddate]).aggregate(Sum('total')).get('total__sum'), 2)
@@ -6360,7 +6360,7 @@ def searchforlistbl(request):
             </tr>
             '''
         return JsonResponse({
-            'trs':trs
+            'trs':render(request, 'bllist.html', {'bons':bons}).content.decode('utf-8')
         })
 
     # Split the term into individual words separated by '*'
@@ -7148,7 +7148,7 @@ def yeardatabl(request):
           </tr>
         '''
     return JsonResponse({
-        'trs':trs,
+        'trs':render(request, 'bllist.html', {'bons':bls}).content.decode('utf-8'),
         'total':round(Bonlivraison.objects.filter(date__year=year).aggregate(Sum('total'))['total__sum'] or 0, 2)
     })
 
