@@ -13,7 +13,7 @@
     <td>{{ order.client.region }}</td>
     <td>{{ order.client.city }}</td>
     <td>{{ order.client.soldfacture|floatformat:2|intspace }}</td>
-    <td>{{ order.salseman }}</td>
+    <td>{{ order.client.represent.name }}</td>
     {% if order.ispaid %}
     <td class="d-flex">
       R0
