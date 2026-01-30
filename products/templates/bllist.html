@@ -9,7 +9,7 @@
             <td >{{ order.client.region }}</td>
             <td >{{ order.client.city }}</td>
             <td >{{ order.client.soldbl|floatformat:2|intspace }}</td>
-            <td >{{ order.salseman.name }}</td>
+            <td >{{ order.client.represent.name }}</td>
             <td class="d-flex justify-content-between">
               {% if order.ispaid %}
               <div>
