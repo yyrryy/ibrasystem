@@ -78,7 +78,6 @@
                 <tr>
                 </tr>
             </table>
-            {{client.accesscatalog}}
             {% if client.accesscatalog %}
                 <button class="btn w-100 btn-danger" onclick="allowcatalog('{{client.code}}')">
                     Fermer catalog
@@ -88,6 +87,19 @@
                     Ouvrir catalog
                 </button>
             {% endif %}
+            <div class="mt-3 d-flex">
+                <div>
+                    {% if client.needs_facture %}
+                    <strong>Client facture</strong>
+                    {%else%}
+                    <strong>Client no facture</strong>
+                    {%endif%}
+                </div>
+                <button class="btn w-100 border" onclick="changeclientfacture('{{client.id}}')">
+                    Changer
+                </button>
+            </div>
+            
             <div class="mt-5 p-2 creteacc{{client.id}} d-none">
 
                 <div class="align-items-center">
@@ -282,6 +294,11 @@
 
 </div>
 <script>
+    function changeclientfacture(id){
+        $.get('products/changeclientfacture', {"id": id}, (data)=>{
+            updatetab('client{{client.id}}', 'products/client/{{client.id}}')
+        })
+    }
     function allowcatalog(clientcode){
         $.get('/products/allowcatalog', {'clientcode':clientcode}, (data)=>{
             updatetab('client{{client.id}}', '/products/client/{{client.id}}')

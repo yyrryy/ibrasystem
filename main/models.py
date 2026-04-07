@@ -249,6 +249,8 @@ class Client(models.Model):
     phone2=models.CharField(max_length=200, default=None, null=True)
     diver=models.BooleanField(default=False)
     accesscatalog=models.BooleanField(default=False)
+    # needs facture is a flag for clients who need their bons generated to facture
+    needs_facture=models.BooleanField(default=False)
     @property
     def mehtodsoldbl(self):
         norangeavoirsbl=round(Avoirclient.objects.filter(client=self, avoirfacture=False).aggregate(Sum('total'))['total__sum'] or 0, 2)
@@ -334,6 +336,8 @@ class Bonlivraison(models.Model):
     rest=models.FloatField(default=0.00)
     modlvrsn=models.CharField(max_length=50, null=True, default=None)
     code=models.CharField(max_length=50, null=True, default=None)
+    # mode de paiment, simple ou contre
+    mode=models.CharField(max_length=50, null=True, default=None)
     bon_no=models.CharField(max_length=50, null=True, default=None)
     # true when the bon is generated to be a facture
     isfacture=models.BooleanField(default=False)

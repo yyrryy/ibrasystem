@@ -185,7 +185,13 @@
           <tr class="ord bl-row {% if order.ispaid %} text-danger{% endif %}" orderid="{{order.code}}" ondblclick="createtab('bonl{{order.id}}', 'Bon livraison {{order.bon_no}}', '/products/bonlivraisondetails/{{order.id}}')" style="background:{% if order.isdelivered %}  lightgreen;{% endif %} {% if i.isfacture%} color:blue;{%endif%}" >
             <td >{{ order.bon_no }}</td>
             <td >{{ order.date|date:'d/m/Y' }}</td>
-            <td >{{ order.client.name }}</td>
+            <td >{{ order.client.name }}
+              {%if order.client.needs_facture%}
+              <strong class="text-danger">
+                (FACTURE)
+              </strong>
+              {%endif%}
+            </td>
             <td >{{ order.client.code }}</td>
             <td style="color: blue;">{{ order.total|floatformat:'2'|intspace}}</td>
             <td >{{ order.client.region }}</td>

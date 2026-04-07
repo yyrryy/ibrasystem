@@ -1568,6 +1568,15 @@ a .uil {
     <script src="{% static 'js/main.js'%}"></script>
     <script src="{% static 'js/alertify.min.js'%}"></script>
     <script>
+      function updatemodebl(event, id){
+        let mode= $(event.target).parent().find('select').val()
+        $.get('/products/updatemodebl', {
+        'mode':mode,
+        'id':id
+        }, (data)=>{
+          updatetab(`bonl${id}`, `/products/bonlivraisondetails/${id}`)
+        })
+      }
     function populateyears(){
       console.log('>> populating years')
       const $select = $('.populateyears');

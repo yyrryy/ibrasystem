@@ -107,7 +107,7 @@
                   <td style="padding-left: 5px;">
                       {% for v in i %}
                       {% if v.1 == 'Bonlivraison' %}
-                      {{v.0.bon_no}}{% if not forloop.counter == i|length %}<br>{% endif %}
+                      {{v.0.bon_no}}{% if v.0.mode == 'contre' %} (contre) {%endif%}{% if not forloop.counter == i|length %}<br>{% endif %}
                       {% elif v.1 == 'PaymentClientbl' %}
                           {% if v.0.mode == espece %}
                           Espece{% if not forloop.counter == i|length %}<br>{% endif %}

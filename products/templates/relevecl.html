@@ -71,7 +71,7 @@
                     <td>
                         {% for v in i %}
                         {% if v.1 == 'Bonlivraison' %}
-                        {{v.0.bon_no}}<br>
+                        {{v.0.bon_no}}{% if v.0.mode == 'contre' %} (contre) {%endif%}<br>
                         {% elif v.1 == 'PaymentClientbl' %}
                             {% if v.0.mode == espece %}
                             Espece<br>

@@ -3,3 +3,4 @@
 migrations/
 __pycache__/
 *.txt
+media_root

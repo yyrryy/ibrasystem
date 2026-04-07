@@ -730,7 +730,6 @@ def addsupply(request):
 
 
 def addbonlivraison(request):
-
     #current_time = datetime.now().strftime('%H:%M:%S')
     clientid=request.POST.get('clientid')
     repid=request.POST.get('repid')
@@ -739,6 +738,7 @@ def addbonlivraison(request):
     orderid=request.POST.get('orderid', None)
     # orderno
     transport=request.POST.get('transport')
+    mode=request.POST.get('mode')
     note=request.POST.get('note')
     datebon=request.POST.get('datebon')
     datebon=datetime.strptime(f'{datebon}', '%Y-%m-%d')
@@ -768,7 +768,8 @@ def addbonlivraison(request):
         date=datebon,
         modlvrsn=transport,
         bon_no=receipt_no,
-        note=note
+        note=note,
+        mode=mode
     )
     print('>>>>>>', len(json.loads(products))>0)
     if len(json.loads(products))>0:
@@ -1218,7 +1219,6 @@ def adminpage(request):
 def bonlivraisondetails(request, id):
     order=Bonlivraison.objects.get(pk=id)
     orderitems=Livraisonitem.objects.filter(bon=order, isfacture=False).order_by('product__name')
-    print('orderitems', orderitems)
     reglements=PaymentClientbl.objects.filter(bons__in=[order])
     orderitems=list(orderitems)
     orderitems=[orderitems[i:i+34] for i in range(0, len(orderitems), 34)]
@@ -10511,3 +10511,22 @@ def yeardataavcl(request):
         'total':total,
     }
     return render(request, 'avoircltrs.html', ctx)
+
+def changeclientfacture(request):
+    id = request.GET.get("id")
+    client=Client.objects.get(pk=id)
+    client.needs_facture = not client.needs_facture
+    client.save()
+    return JsonResponse({
+        "success": True
+    })
+
+def updatemodebl(request):
+    id=request.GET.get("id")
+    mode=request.GET.get("mode")
+    bon=Bonlivraison.objects.get(pk=id)
+    bon.mode=mode
+    bon.save()
+    return JsonResponse({
+        "success":True
+    })

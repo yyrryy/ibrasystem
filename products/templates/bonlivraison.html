@@ -65,6 +65,12 @@
                 <div class="mb-2">
                     <input type="text" class="form-control note" name="note" placeholder="Note">
                 </div>
+                <div class="mb-2">
+                    <select name="mode" id="" style="width:100%;" class="mode">
+                        <option value="simple">simple</option>
+                        <option value="contre">contre</option>
+                    </select>
+                </div>
             </div>
 
             <div class="col-7 row productsholder d-none">
@@ -679,6 +685,7 @@
           let repid = parentdiv.find('.repsselectsbl').val()
           let datebon = parentdiv.find('.datebonbl').val()
           let transport = parentdiv.find('.transport').val()
+          let mode = parentdiv.find('.mode').val()
           let note = parentdiv.find('.note').val()
           let totalbon=parseFloat(parentdiv.find('.totalbon').text())
           console.log(products)
@@ -705,6 +712,7 @@
                   'clientid': clientid,
                   'repid':repid,
                   'transport':transport,
+                  'mode':mode,
                   'datebon': datebon,
                   'note': note,
                   'products': JSON.stringify(products),

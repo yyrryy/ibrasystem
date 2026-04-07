@@ -34,6 +34,11 @@
     <button class="btn btn-sm bg-darkblue text-white w-100 mt-2" onclick="hidetettebl()">
       Entette
     </button>
+    {%if order.client.needs_facture%}
+      <div class="text-danger">
+        (client FACTURE)
+      </div>
+    {%endif%}
     <strong class="mt-2">Transport</strong>
     <div class="d-flex">
       <input value="{{order.modlvrsn}}">
@@ -53,6 +58,15 @@
         {% endfor %}
       </select>
       <button onclick="updaterepbl(event, '{{order.id}}')">+</button>
+    </div>
+    <strong class="mt-2">Mode</strong>
+    <div class="d-flex">
+      <select>
+        <option value="{{order.mode}}">{{order.mode}}</option>
+        <option value="simple">simple</option>
+        <option value="contre">contre</option>
+      </select>
+      <button onclick="updatemodebl(event, '{{order.id}}')">+</button>
     </div>
     <strong>Reglements:</strong>
     {% for i in reglements %}
