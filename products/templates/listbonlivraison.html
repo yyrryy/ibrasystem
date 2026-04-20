@@ -186,7 +186,7 @@
             <td >{{ order.bon_no }}</td>
             <td >{{ order.date|date:'d/m/Y' }}</td>
             <td >{{ order.client.name }}
-              {%if order.client.needs_facture%}
+              {%if order.client.needs_facture and not order.isfacture%}
               <strong class="text-danger">
                 (FACTURE)
               </strong>
