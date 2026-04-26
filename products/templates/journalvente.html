@@ -16,6 +16,7 @@
                 <input type="date" name="jvdateto" class="form-control notempty jvdateto" value="{{today|date:'Y-m-d'}}">
             </div>
             <button class="btn btn-sm-success bg-darkblue text-white" onclick="getdatefilter()">Filtrer</button>
+            <button class="btn btn-sm-success bg-info text-white" onclick="exceldatefilter()">Excel</button>
         </div>
 
         <div class="d-flex justify-content-between mt-2">
@@ -105,6 +106,32 @@
             $('.totalqtyjv').text(data.totalqty)
             calculatetotals()
         })
+    }
+    function exceldatefilter() {
+        datefrom=$('.jvdatefrom').val()
+        dateto=$('.jvdateto').val()
+
+        $.ajax({
+            url: '/products/exceljvdate',
+            method: 'GET',
+            data: {
+                datefrom: datefrom,
+                dateto: dateto
+            },
+            xhrFields: {
+                responseType: 'blob'
+            },
+            success: function (data) {
+                const blob = new Blob([data], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                });
+
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = 'journal_vente.xlsx';
+                link.click();
+            }
+        });
     }
     function calculatetotals(){
         console.log('totals')

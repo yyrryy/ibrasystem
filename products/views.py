@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from main.models import Produit, Mark, Category, Supplier, Stockin, Itemsbysupplier, Client, Represent, Order, Orderitem, Clientprices, Bonlivraison, Facture, Outfacture, Livraisonitem, PaymentClientbl, PaymentClientfc,  PaymentSupplier, Bonsregle, Returnedsupplier, Avoirclient, Returned, Avoirsupplier, Orderitem, Carlogos, Ordersnotif, Connectedusers, Promotion, UserSession, Refstats, Notavailable, Cart, Wich, wishlist, Notification, Modifierstock, Cartitems, Notesrepresentant, Achathistory, Excelecheances, Tva, Etude, EtudeItem
 from django.contrib.auth import logout
 from django.http import JsonResponse, HttpResponse
-import openpyxl
+from openpyxl import Workbook
 # import Count
 from django.contrib.auth.models import User
 from django.db.models import Count, F, Sum, Q, ExpressionWrapper, Func, fields, IntegerField
@@ -25,6 +25,7 @@ from collections import defaultdict
 import calendar
 from django.db.models.functions import TruncDay
 import uuid
+
 today = timezone.now().date()
 thisyear=timezone.now().year
 
@@ -105,16 +106,7 @@ def createcategory(request):
         # get image file
         'image':category.image.url.replace('/media/', '') if category.image else ''
     })
-    # req.get('http://ibraparts.ma/products/createcategory', {
-
-    #     'name':name,
-    #     'code':code,
-    #     'affichage':affichage,
-    #     'hideclient':hideclient,
-    #     'commercialexcluded':commercialexcluded,
-    #     # get image file
-    #     'image':category.image.url.replace('/media/', '') if category.image else ''
-    # })
+    
     return JsonResponse({
         'html':render(request, 'categories.html', ctx).content.decode('utf-8')
     })
@@ -142,15 +134,7 @@ def updatecategory(request):
         'categories':Category.objects.all().order_by('code'),
         'title':'Categories'
     }
-    # req.get('http://ibraparts.ma/products/updatecategory', {
-    #     'id':id,
-    #     'image':category.image.url.replace('/media/', '') if category.image else '',
-    #     'hideclient':hideclient,
-    #     'commercialexcluded':commercialexcluded,
-    #     'name':request.POST.get('updatecategoryname'),
-    #     'code':request.POST.get('updatecategorycode'),
-    #     'affichage':request.POST.get('updatecategoryaffichage'),
-    # })
+   
     return JsonResponse({
         'html':render(request, 'categories.html', ctx).content.decode('utf-8')
     })
@@ -176,13 +160,7 @@ def createmarque(request):
     mrq=Mark.objects.create(name=name, image=image, masqueclients=hideclient)
     if len(commercialexcluded) > 0:
         mrq.excludedrep.set(reps)
-    # req.get('http://ibraparts.ma/products/createmarque', {
-    #     'name':name,
-    #     'hideclient':hideclient,
-    #     'commercialexcluded':commercialexcluded,
-    #     # get image file
-    #     'image':mrq.image.url.replace('/media/', '') if mrq.image else ''
-    # })
+    
     return JsonResponse({
         'success':True
     })
@@ -201,14 +179,7 @@ def updatemarque(request):
     if image:
         mark.image=image
     mark.save()
-    # req.get('http://ibraparts.ma/products/updatemarque', {
-    #     'id':id,
-    #     'name':request.POST.get('name'),
-    #     'hideclient':hideclient,
-    #     'commercialexcluded':commercialexcluded,
-    #     # get image file
-    #     'image':mark.image.url.replace('/media/', '') if mark.image else ''
-    # })
+    
     ctx={
         'marques':Mark.objects.all(),
         'title':'List des marques'
@@ -311,31 +282,7 @@ def addoneproduct(request):
         equivalent=request.POST.get('equivinadd') or ''
         cars=request.POST.getlist('carsinadd') or ''
         netprice=round(float(sellprice)-(float(sellprice)*float(remise)/100), 2)
-        # res=req.get('http://ibraparts.ma/products/addoneproduct', {
-        #     'ref':ref,
-        #     'name':name,
-        #     'buyprice':buyprice,
-        #     'diametre':diametre,
-        #     'sellprice':sellprice,
-        #     'remise':remise,
-        #     'prixnet':netprice,
-        #     'representprice':representprice,
-        #     'minstock':minstock,
-        #     'equivalent':equivalent,
-        #     'cars':cars,
-        #     'category':category,
-        #     'supplier':supplier,
-        #     'mark':mark,
-        #     'image':'',
-        #     'code':code,
-        #     'repsprice':commercialsprix,
-        #     'block':block,
-        #     'carlogos_id':logo,
-        #     'stocktotal':0,
-        #     'stockfacture':0
-        # })
-        # res.raise_for_status()
-        # create product
+        
         product=Produit.objects.create(
             ref=ref,
             name=name,
@@ -533,11 +480,7 @@ def updateproduct(request):
     print('>>end ',product)
     print('>>>>>>>>>>>>>> equivalent>',equivalent)
 
-    # res=req.get('http://ibraparts.ma/products/updateproduct', data)
-    # print('>>>>>>', res)
-    # if not res.status_code == 200:
-    #         print('Error message:', res.text)
-    # print('>>>>>>', request.POST.getlist('cars'))
+    
     return JsonResponse({
         'success':True
     })
@@ -970,15 +913,7 @@ def addcommercial(request):
     repregion=request.POST.get('repregion')
     repinfo=request.POST.get('repinfo')
     try:
-        # request=req.get('http://ibraparts.ma/products/addcommercial',{
-        #     'repusername':repusername,
-        #     'reppassword':reppassword,
-        #     'repname':repname,
-        #     'repphone':repphone,
-        #     'repregion':repregion,
-        #     'repinfo':repinfo
-        # })
-        # request.raise_for_status()
+        
         user=User.objects.create_user(username=repusername, password=reppassword)
         # Get or create the group
         group, created = Group.objects.get_or_create(name="salsemen")
@@ -1059,17 +994,7 @@ def addclient(request):
             'error':'Code ou Nom exist deja'
         })
     try:
-        # response=req.get('http://ibraparts.ma/products/addclient', {
-        #     'city':city,
-        #     'ice':ice,
-        #     'region':region,
-        #     'represent_id':representant,
-        #     'code':code,
-        #     'name':name,
-        #     'phone':phone,
-        #     'address':address,
-        # })
-        # response.raise_for_status()
+        
         client=Client.objects.create(
             city=city,
             ice=ice,
@@ -1130,19 +1055,7 @@ def updateclient(request):
          })
     oldcode=client.code
     try:
-        # res=req.get('http://ibraparts.ma/products/updateclient', {
-        #     'clientcode':oldcode,
-        #     'name':request.POST.get('updateclientname'),
-        #     'phone':request.POST.get('updateclientphone'),
-        #     'address':request.POST.get('updateclientaddress'),
-        #     'ice':request.POST.get('updateclientice'),
-        #     'code':request.POST.get('updateclientcode'),
-        #     'city':request.POST.get('updateclientcity'),
-        #     'address':request.POST.get('updateclientaddress'),
-        #     'region':request.POST.get('updateclientregion'),
-        #     'rep':request.POST.get('updateclientrep'),
-        # })
-        # res.raise_for_status
+        
         client.name=request.POST.get('updateclientname')
         client.phone=request.POST.get('updateclientphone')
         client.clientname=request.POST.get('updateclientpersonalname')
@@ -1407,7 +1320,7 @@ def exportbl(request):
 
 
     # Create a new Excel workbook and add a worksheet
-    wb = openpyxl.Workbook()
+    wb = Workbook()
     ws = wb.active
 
     # Write column headers
@@ -1464,7 +1377,7 @@ def exportfc(request):
 
 
     # Create a new Excel workbook and add a worksheet
-    wb = openpyxl.Workbook()
+    wb = Workbook()
     ws = wb.active
 
     # Write column headers
@@ -1562,9 +1475,7 @@ def activerproduct(request):
         'entries':Stockin.objects.filter(product=product),
         'sorties':Orderitem.objects.filter(product=product),
     }
-    # req.get('http://ibraparts.ma/products/activerproduct', {
-    #     'id':request.POST.get('id')
-    # })
+   
     return JsonResponse({
         'html':render(request, 'viewoneproduct.html', ctx).content.decode('utf-8')
     })
@@ -1584,9 +1495,7 @@ def desactiverproduct(request):
         'entries':Stockin.objects.filter(product=product),
         'sorties':Orderitem.objects.filter(product=product),
     }
-    # req.get('http://ibraparts.ma/products/desactiverproduct', {
-    #     'id':request.POST.get('id')
-    # })
+    
     return JsonResponse({
         'html':render(request, 'viewoneproduct.html', ctx).content.decode('utf-8')
     })
@@ -4132,11 +4041,7 @@ def createclientaccount(request):
     user.save()
     client.user=user
     client.save()
-    # req.get('http://ibraparts.ma/products/createclientaccount', {
-    #     'clientcode':client.code,
-    #     'username':username,
-    #     'password':password
-    # })
+    
     return JsonResponse({
         'success':True
     })
@@ -4491,10 +4396,7 @@ def deactivateaccount(request):
     user=User.objects.get(id=userid)
     user.is_active=False
     user.save()
-    # req.get('http://ibraparts.ma/products/deactivateaccount', {
-    #     'username':user.username,
-    # })
-    # delete user session in django session
+    
     UserSession.objects.filter(user=user).delete()
     # Clear the user's session
     #Session.objects.filter(session_key__in=UserSession.objects.filter(user=user).values('session_key')).delete()
@@ -4508,9 +4410,7 @@ def activateaccount(request):
     user=User.objects.get(id=userid)
     user.is_active=True
     user.save()
-    # req.get('http://ibraparts.ma/products/activateaccount', {
-    #     'username':user.username,
-    # })
+    
     return JsonResponse({
         'success':True
     })
@@ -5151,9 +5051,7 @@ def boncommandes(request):
 
 def listeconnected(request):
     five_minutes_ago = timezone.now() - timedelta(minutes=10)
-    # res=req.get('http://ibraparts.ma/products/listeconnected')
-    # print(json.loads(res.text)['connected'])
-    # print('>>', res.text)
+    
     notconnected=Connectedusers.objects.filter(lasttime__lt=five_minutes_ago).order_by('-lasttime')
     connected=Connectedusers.objects.filter(lasttime__gt=five_minutes_ago)
 
@@ -5180,11 +5078,7 @@ def createpromotion(request):
     image=request.FILES.get('promotionimage')
     # create category
     pr=Promotion.objects.create(info=name, image=image)
-    # req.get('http://ibraparts.ma/products/createpromotion', {
-    #     'name':name,
-    #     # get image file
-    #     'image':pr.image.url.replace('/media/', '') if pr.image else ''
-    # })
+    
     ctx={
         'promotions':Promotion.objects.all(),
         'title':'List des promotions'
@@ -5201,12 +5095,7 @@ def updatepromotion(request):
     if image:
         promotion.image=image
     promotion.save()
-    # req.get('http://ibraparts.ma/products/updatepromotion', {
-    #     'name':request.POST.get('name'),
-    #     'id':id,
-    #     # get image file
-    #     'image':promotion.image.url.replace('/media/', '') if promotion.image else ''
-    # })
+    
     ctx={
         'promotions':Promotion.objects.all(),
         'title':'List des promotions'
@@ -7028,28 +6917,7 @@ def createnewclientaccount(request):
         })
     user=User.objects.create_user(username=username, password=password)
     try:
-        # response=req.get('http://ibraparts.ma/products/createnewclientaccount', {
-        #     'username':username,
-        #     'password':password,
-        #     'clientcode':client.code
-        # })
-        # response.raise_for_status()
-        # cart=Cart.objects.filter(user=olduser).first()
-        # wich=Wich.objects.filter(user=olduser).first()
-        # if cart:
-        #     cart.user=user
-        #     cart.save()
-        # if wich:
-        #     wich.user=user
-        #     wich.save()
-        # olduser.delete()
-        # # create user
-        # # assign user to client
-        # group, created = Group.objects.get_or_create(name="clients")
-        # user.groups.add(group)
-        # user.save()
-        # client.user=user
-        # client.save()
+        
 
         return JsonResponse({
             'success':True
@@ -7075,28 +6943,7 @@ def createnewrepaccount(request):
             'error':'Username exist déja'
         })
     try:
-        # response=req.get('http://ibraparts.ma/products/createnewrepaccount', {
-        #     'username':username,
-        #     'password':password,
-        #     'repid':repid
-        # })
-        # response.raise_for_status()
-        # user=User.objects.create_user(username=username, password=password)
-        # # assign user to rep
-        # cart=Cart.objects.filter(user=olduser).first()
-        # wich=Wich.objects.filter(user=olduser).first()
-        # if cart:
-        #     cart.user=user
-        #     cart.save()
-        # if wich:
-        #     wich.user=user
-        #     wich.save()
-        # olduser.delete()
-        # group, created = Group.objects.get_or_create(name="salsemen")
-        # user.groups.add(group)
-        # user.save()
-        # rep.user=user
-        # rep.save()
+        
         return JsonResponse({
             'success':True
         })
@@ -7455,7 +7302,7 @@ def exportproducts(request):
 
 
     # Create a new Excel workbook and add a worksheet
-    wb = openpyxl.Workbook()
+    wb = Workbook()
     ws = wb.active
 
     # Write column headers
@@ -8156,7 +8003,73 @@ def filterjvdate(request):
         ctx['total']=round(Livraisonitem.objects.filter(isfacture=False, date__range=[startdate, enddate]).aggregate(Sum('total')).get('total__sum'), 2)
         ctx['qty']=round(Livraisonitem.objects.filter(isfacture=False, date__range=[startdate, enddate]).aggregate(Sum('qty')).get('qty__sum'), 2)
     return JsonResponse(ctx)
+def exceljvdate(request):
+    startdate = request.GET.get('datefrom')
+    enddate = request.GET.get('dateto')
 
+    startdate = datetime.strptime(startdate, '%Y-%m-%d')
+    enddate = datetime.strptime(enddate, '%Y-%m-%d')
+
+    bons = Livraisonitem.objects.filter(
+        isfacture=False,
+        date__range=[startdate, enddate]
+    ).order_by('-date')
+
+    # Create workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Journal Vente"
+
+    # Headers
+    headers = [
+        "Date", "Bon No", "Ref", "Product", "Price",
+        "Prix Net", "Cout Moyen", "Buy Price",
+        "Qty", "Total", "Client", "Representant"
+    ]
+    ws.append(headers)
+
+
+
+    # Fill rows
+    for i in bons:
+        ws.append([
+            i.date.strftime('%d/%m/%Y'),
+            i.bon.bon_no,
+            i.product.ref,
+            i.product.name,
+            i.price,
+            i.product.prixnet if i.product.prixnet else 0,
+            i.product.coutmoyen if i.product.coutmoyen else 0,
+            i.product.buyprice if i.product.buyprice else 0,
+            i.qty,
+            i.total,
+            i.bon.client.name,
+            i.bon.salseman.name
+        ])
+
+    # Totals
+    if bons:
+        total = Livraisonitem.objects.filter(
+            isfacture=False,
+            date__range=[startdate, enddate]
+        ).aggregate(Sum('total'))['total__sum'] or 0
+
+        qty = Livraisonitem.objects.filter(
+            isfacture=False,
+            date__range=[startdate, enddate]
+        ).aggregate(Sum('qty'))['qty__sum'] or 0
+
+        ws.append([])
+        ws.append(["", "", "", "", "", "", "", "TOTAL", qty, total])
+
+    # Response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=journal_vente.xlsx'
+
+    wb.save(response)
+    return response
 def filterjvfcdate(request):
     startdate=request.GET.get('datefrom')
     enddate=request.GET.get('dateto')
@@ -8192,13 +8105,74 @@ def filterjvfcdate(request):
         ctx['total']=round(Outfacture.objects.filter(date__range=[startdate, enddate]).aggregate(Sum('total'))['total__sum'], 2)
         ctx['totalqty']=Outfacture.objects.filter(date__range=[startdate, enddate]).aggregate(Sum('qty')).get('qty__sum')
     return JsonResponse(ctx)
+def exceljvfcdate(request):
+    startdate = request.GET.get('datefrom')
+    enddate = request.GET.get('dateto')
 
+    startdate = datetime.strptime(startdate, '%Y-%m-%d')
+    enddate = datetime.strptime(enddate, '%Y-%m-%d')
+
+    qs = Outfacture.objects.filter(
+        date__range=[startdate, enddate]
+    ).order_by('-date')  # no limit for export
+
+    # Create workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Journal Vente Facturé"
+
+    # Headers
+    headers = [
+        "Date", "Facture No", "Ref", "Product", "Price",
+        "Prix Net", "Cout Moyen", "Buy Price",
+        "Qty", "Total", "Client", "Salesman"
+    ]
+    ws.append(headers)
+
+    # Fill rows
+    for i in qs:
+        ws.append([
+            i.date.strftime('%d/%m/%Y'),
+            i.facture.facture_no,
+            i.product.ref,
+            i.product.name,
+            i.price,
+            i.product.prixnet if i.product.prixnet else 0,
+            i.product.coutmoyen if i.product.coutmoyen else 0,
+            i.product.buyprice if i.product.buyprice else 0,
+            i.qty,
+            i.total,
+            i.facture.client.name,
+            i.facture.salseman.name
+        ])
+
+    # Totals (single query)
+    if qs.exists():
+        totals = qs.aggregate(
+            total_sum=Sum('total'),
+            qty_sum=Sum('qty')
+        )
+
+        total = totals['total_sum'] or 0
+        totalqty = totals['qty_sum'] or 0
+
+        ws.append([])
+        ws.append(["", "", "", "", "", "", "", "TOTAL", totalqty, total])
+
+    # Response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=journal_vente_facture.xlsx'
+
+    wb.save(response)
+    return response
 def filterjachdate(request):
     startdate=request.GET.get('datefrom')
     enddate=request.GET.get('dateto')
     startdate = datetime.strptime(startdate, '%Y-%m-%d')
     enddate = datetime.strptime(enddate, '%Y-%m-%d')
-    bons=Stockin.objects.filter(date__range=[startdate, enddate]).order_by('-date')[:50]
+    bons=Stockin.objects.filter(facture=False, date__range=[startdate, enddate]).order_by('-date')[:50]
     trs=''
     for i in bons:
         trs+=f'''
@@ -8220,6 +8194,42 @@ def filterjachdate(request):
         ctx['total']=round(Stockin.objects.filter(date__range=[startdate, enddate]).aggregate(Sum('total'))['total__sum'], 2)
         ctx['totalqty']=Stockin.objects.filter(date__range=[startdate, enddate]).aggregate(Sum('quantity'))['quantity__sum']
     return JsonResponse(ctx)
+
+def exceljachdate(request):
+    startdate = request.GET.get('datefrom')
+    enddate = request.GET.get('dateto')
+
+    startdate = datetime.strptime(startdate, '%Y-%m-%d')
+    enddate = datetime.strptime(enddate, '%Y-%m-%d')
+    bons = Stockin.objects.filter(facture=False, date__range=[startdate, enddate]).order_by('-date')
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Journal Achat"
+    headers = ["Date", "Ref", "Product", "Prix achat", "Fournisseur", "Devise", "Quantity", "Total"]
+    ws.append(headers)
+    for i in bons:
+        ws.append([
+            i.date.strftime('%d/%m/%Y'),
+            i.product.ref,
+            i.product.name,
+            i.price,
+            i.supplier.name,
+            i.devise,
+            i.quantity,
+            i.total
+        ])
+    if bons:
+        total = Stockin.objects.filter(date__range=[startdate, enddate]).aggregate(Sum('total'))['total__sum'] or 0
+        totalqty = Stockin.objects.filter(date__range=[startdate, enddate]).aggregate(Sum('quantity'))['quantity__sum'] or 0
+
+        ws.append([])
+        ws.append(["", "", "", "", "", "TOTAL QTY", totalqty, total])
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename=journal_achat.xlsx'
+    wb.save(response)
+    return response
 
 def searchforjach(request):
     term=request.GET.get('term')
@@ -8351,7 +8361,68 @@ def filterjachfcdate(request):
         ctx['total']=round(Stockin.objects.filter(facture=True, date__range=[startdate, enddate]).aggregate(Sum('total'))['total__sum'], 2)
         ctx['totalqty']=Stockin.objects.filter(facture=True, date__range=[startdate, enddate]).aggregate(Sum('quantity'))['quantity__sum']
     return JsonResponse(ctx)
+def exceljachfcdate(request):
+    startdate = request.GET.get('datefrom')
+    enddate = request.GET.get('dateto')
 
+    startdate = datetime.strptime(startdate, '%Y-%m-%d')
+    enddate = datetime.strptime(enddate, '%Y-%m-%d')
+
+    bons = Stockin.objects.filter(
+        facture=True,
+        date__range=[startdate, enddate]
+    ).order_by('-date')  # removed [:50] for full export
+
+    # Create workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Journal Achat Facturé"
+
+    # Headers
+    headers = [
+        "Date", "Ref", "Product", "Prix achat",
+        "Fournisseur", "Devise", "Quantity", "Total"
+    ]
+    ws.append(headers)
+
+
+
+    # Fill rows
+    for i in bons:
+        ws.append([
+            i.date.strftime('%d/%m/%Y'),
+            i.product.ref,
+            i.product.name,
+            i.price,
+            i.supplier.name,
+            i.devise,
+            i.quantity,
+            i.total
+        ])
+
+    # Totals
+    if bons.exists():
+        total = Stockin.objects.filter(
+            facture=True,
+            date__range=[startdate, enddate]
+        ).aggregate(Sum('total'))['total__sum'] or 0
+
+        totalqty = Stockin.objects.filter(
+            facture=True,
+            date__range=[startdate, enddate]
+        ).aggregate(Sum('quantity'))['quantity__sum'] or 0
+
+        ws.append([])
+        ws.append(["", "", "", "", "", "TOTAL QTY", totalqty, total])
+
+    # Response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=journal_achat_facture.xlsx'
+
+    wb.save(response)
+    return response
 def searchforjachfc(request):
     thisyear=timezone.now().year
     term=request.GET.get('term')
@@ -8437,15 +8508,7 @@ def updaterepdata(request):
     'repid':repid,
     'caneditprice':caneditprice
     }
-    # try:
-    #     # res=req.get('http://ibraparts.ma/products/updaterepdata', data)
-    #     # res.raise_for_status()
-    # except:
-    #     # in case connection failed
-    #     return JsonResponse({
-    #     'success':False,
-    #     'here':'rr'
-    #     })
+    
     print(region, caneditprice, slides, repid)
     rep=Represent.objects.get(pk=repid)
     rep.region=region
@@ -8517,9 +8580,7 @@ def getitemsforlistbl(request):
         'categories':categories
     })
 def refspage(request):
-    # res=req.get('http://ibraparts.ma/products/refspage')
-    # print(res)
-
+    
     refs=Refstats.objects.all().order_by('-lastdate')
     return render(request, 'refspage.html', {'refs':refs})
 
@@ -8794,8 +8855,7 @@ def listnotifications(request):
 def addnotification(request):
     notification=request.GET.get('notification')
     try:
-        # req.get('http://ibraparts.ma/products/addnotification', {'notificationid':notificationid,'notification':notification})
-
+        
         # Notification.objects.create(notification=notification)
         return JsonResponse({
             'success':True
@@ -8813,19 +8873,7 @@ def updatenotification(request):
     return JsonResponse({
         'success':True
     })
-    # try:
-    #     req.get('http://ibraparts.ma/products/updatenotification', {'notificationid':notificationid,'notification':notification})
-    #     notif=Notification.objects.get(pk=notificationid)
-    #     notif.notification=notification
-    #     notif.save()
-    #     return JsonResponse({
-    #         'success':True
-    #     })
-    # except:
-    #     print('>>>>>>> error')
-    #     return JsonResponse({
-    #         'success':False
-    #         })
+    
 
 def updatefacturenote(request):
     factureid=request.GET.get('factureid')
@@ -8924,12 +8972,7 @@ def updateproductstock(request):
     product=Produit.objects.get(pk=productid)
     diff=int(stock)-int(product.stocktotal)
     Modifierstock.objects.create(stock=diff, product=product)
-    # req.get('http://ibraparts.ma/products/updatepdctdata', {
-
-    #     'id':productid,
-    #     'ref':product.ref,
-    #     'stocktotal':stock,
-    # })
+   
     product.stocktotal=stock
     product.save()
     return JsonResponse({
@@ -8993,15 +9036,7 @@ def getclientcode(request):
 def allowcatalog(request):
     clientcode=request.GET.get('clientcode')
     try:
-        # res=req.get('http://ibraparts.ma/products/allowcatalog', {
-        #     'clientcode':clientcode,
-        # })
-        # print(res)
-        # res.raise_for_status()
-        # print('>><W>>>>>>>>>>>>>>>>>')
-        # client=Client.objects.get(code=clientcode)
-        # client.accesscatalog=not client.accesscatalog
-        # client.save()
+        
         return JsonResponse({
             'success':True
         })

@@ -864,15 +864,12 @@ def updatestockinv(request):
     })
     # all them entries are not aligning themselves with the traditional services that we had established there as long as the products is cinserned , jduidhjzejfuehjsdfjejsdodsdjkf jusdfu
 def getconnected(request):
-    res=req.get('http://ibraparts.ma/products/getconnectedusers')
-    return JsonResponse(json.loads(res.text))
+    return JsonResponse([])
 def getusercart(request):
     userid=request.GET.get('userid')
-    res=req.get('http://ibraparts.ma/getitemsincart?userid='+userid)
-    return JsonResponse(json.loads(res.text))
+    return JsonResponse([])
 def getitemsinwishlist(request):
     userid=request.GET.get('userid')
-    res=req.get('http://ibraparts.ma/getitemsinwishlist?userid='+userid)
-    return JsonResponse(json.loads(res.text))
+    return JsonResponse([])
 def initpage(request):
     return render(request, 'initpage.html')

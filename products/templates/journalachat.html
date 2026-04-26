@@ -14,6 +14,7 @@
               <input type="date" name="jachdateto" class="form-control notempty jachdateto" value="{{today|date:'Y-m-d'}}">
           </div>
           <button class="btn btn-success" onclick="getdatefilterjach()">Filtrer</button>
+          <button class="btn btn-info" onclick="exceldatefilterjach()">EXCEL</button>
       </div>
       <div class="d-flex justify-content-between">
         <input style="width:20em; height: 25px;" type="text" name="" id="" placeholder="Recherche" class="searchinpulistjournalachar">
@@ -98,6 +99,32 @@
             $('.totaljach').text(data.total?data.total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' '):0)
             $('.totalqtyjach').text(data.totalqty?data.totalqty:0)
         })
+    }
+    function exceldatefilterjach() {
+        const datefrom = $('.jachdatefrom').val();
+        const dateto = $('.jachdateto').val();
+
+        $.ajax({
+            url: '/products/exceljachdate',
+            method: 'GET',
+            data: {
+                datefrom: datefrom,
+                dateto: dateto
+            },
+            xhrFields: {
+                responseType: 'blob'
+            },
+            success: function (data) {
+                const blob = new Blob([data], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                });
+
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = 'journal_achat.xlsx';
+                link.click();
+            }
+        });
     }
 
     function getjachdatayear(event){
