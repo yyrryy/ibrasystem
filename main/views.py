@@ -268,8 +268,8 @@ def searchrefphone(request):
 
     return JsonResponse({'data':a, 'brands':brands, 'categories':categories})
 
-@user_passes_test(tocatalog, login_url='main:loginpage')
-@login_required(login_url='main:loginpage')
+@user_passes_test(tocatalog, login_url='main:b3921b')
+@login_required(login_url='main:b3921b')
 def clientshome(request):
     request.session.set_expiry(30 * 24 * 60 * 60)
     constraction=False
@@ -360,7 +360,7 @@ def loginpage(request):
                 print('user is active')
                 return redirect('main:catalog')
             else:
-                return redirect ('main:loginpage')
+                return redirect ('main:b3921b')
         if (request.user.groups.first().name=='accounting'):
             return redirect('main:orders')
         # if (request.user.groups.first().name=='admin'):
@@ -380,14 +380,14 @@ def loginpage(request):
                 print('user is active')
                 return redirect('main:clientshome')
             else:
-                return redirect ('main:loginpage')
+                return redirect ('main:b3921b')
     return render(request, 'login.html')
 
 def loginuser(request):
     username = request.POST.get('username', '')
     password = request.POST.get('password', '')
     if username=='' or password=='':
-        return redirect('main:loginpage')
+        return redirect('main:b3921b')
     print(username, password)
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
@@ -522,8 +522,8 @@ def filters(request):
         'data':render(request, 'calls.html', {'products':products}).content.decode('utf-8')
     })
 
-@user_passes_test(isadmin, login_url='main:loginpage')
-@login_required(login_url='main:loginpage')
+@user_passes_test(isadmin, login_url='main:b3921b')
+@login_required(login_url='main:b3921b')
 def create(request):
     # get category from db
     categories=Category.objects.all()
@@ -551,7 +551,7 @@ def addmark(request):
     Mark(name=mark).save()
     return redirect(create)
 
-@login_required(login_url='main:loginpage')
+@login_required(login_url='main:b3921b')
 def addbulk(request):
     myfile = request.FILES['file']
     # df = pd.read_excel(myfile)
@@ -564,8 +564,8 @@ def addbulk(request):
     #         print(e)
     return redirect(create)
 
-@user_passes_test(tocatalog, login_url='main:loginpage')
-@login_required(login_url='main:loginpage')
+@user_passes_test(tocatalog, login_url='main:b3921b')
+@login_required(login_url='main:b3921b')
 def commande(request):
     
 
@@ -583,8 +583,8 @@ def repcommande(request):
 
 
 # finish this userisclient
-@user_passes_test(isclient, login_url='main:loginpage')
-@login_required(login_url='main:loginpage')
+@user_passes_test(isclient, login_url='main:b3921b')
+@login_required(login_url='main:b3921b')
 def clientdashboar(request):
     # get id of request user
     id=request.user.id
@@ -602,8 +602,8 @@ def clientdashboar(request):
     return render(request, 'clientdashboar.html', ctx)
 
 
-@user_passes_test(isaccounting, login_url='main:loginpage')
-@login_required(login_url='main:loginpage')
+@user_passes_test(isaccounting, login_url='main:b3921b')
+@login_required(login_url='main:b3921b')
 def orders(request):
     # get orders from db and order them by date ascendant
     orders=Order.objects.all()
@@ -665,8 +665,8 @@ def paied(request, id):
 
 
 # gets products after clicking on a category
-@user_passes_test(tocatalog, login_url='main:loginpage')
-@login_required(login_url='main:loginpage')
+@user_passes_test(tocatalog, login_url='main:b3921b')
+@login_required(login_url='main:b3921b')
 def products(request, id):
     # get the products from the db
     c=Mark.objects.get(pk=id)
@@ -678,8 +678,8 @@ def products(request, id):
          'newproducts':newproducts}
     return render(request, 'products.html', ctx)
 
-@user_passes_test(tocatalog, login_url='main:loginpage')
-@login_required(login_url='main:loginpage')
+@user_passes_test(tocatalog, login_url='main:b3921b')
+@login_required(login_url='main:b3921b')
 def productscategories(request, id):
     # get the products from the db
     c=Category.objects.get(pk=id)
@@ -714,8 +714,8 @@ def productscategories(request, id):
         }
     return render(request, 'products.html', ctx)
 
-@user_passes_test(tocatalog, login_url='main:loginpage')
-@login_required(login_url='main:loginpage')
+@user_passes_test(tocatalog, login_url='main:b3921b')
+@login_required(login_url='main:b3921b')
 def productsmarks(request, id):
     # get the products from the db
     c=Mark.objects.get(pk=id)
@@ -731,8 +731,8 @@ def productsmarks(request, id):
          'newproducts':newproducts}
     return render(request, 'markspdcts.html', ctx)
 
-@user_passes_test(isadmin, login_url='main:loginpage')
-@login_required(login_url='main:loginpage')
+@user_passes_test(isadmin, login_url='main:b3921b')
+@login_required(login_url='main:b3921b')
 def ibra(request):
 
     ctx={
@@ -754,8 +754,8 @@ def fcibra(request):
     return render(request, 'fcdashboard.html', ctx)
 
 
-@user_passes_test(tocatalog, login_url='main:loginpage')
-@login_required(login_url='main:loginpage')
+@user_passes_test(tocatalog, login_url='main:b3921b')
+@login_required(login_url='main:b3921b')
 def catalog(request):
     # categories = Category.objects.annotate(
     #     has_promotion=Exists(Produit.objects.filter(category_id=OuterRef('pk'), isoffer=True)),
@@ -788,8 +788,8 @@ def catalog(request):
     return render(request, 'searchpage.html', ctx)
 
 
-@user_passes_test(tocatalog, login_url='main:loginpage')
-@login_required(login_url='main:loginpage')
+@user_passes_test(tocatalog, login_url='main:b3921b')
+@login_required(login_url='main:b3921b')
 def catalogpage(request):
     # categories = Category.objects.annotate(
     #     has_promotion=Exists(Produit.objects.filter(category_id=OuterRef('pk'), isoffer=True)),
@@ -821,8 +821,8 @@ def catalogpage(request):
         }
     return render(request, 'catalog.html', ctx)
 
-@user_passes_test(bothsalseaccount, login_url='main:loginpage')
-@login_required(login_url='main:loginpage')
+@user_passes_test(bothsalseaccount, login_url='main:b3921b')
+@login_required(login_url='main:b3921b')
 def ordersforeach(request):
     # get id of request user
     id=request.user.id
@@ -832,8 +832,8 @@ def ordersforeach(request):
     paied=len(orders.filter(ispaied=True))
 
     return render(request, 'orders.html', {'orders':orders, 'delivered':delivered, 'title':'Commandes', 'notdel':len(orders)-delivered, 'paied':paied})
-@user_passes_test(bothsalseaccount, login_url='main:loginpage')
-@login_required(login_url='main:loginpage')
+@user_passes_test(bothsalseaccount, login_url='main:b3921b')
+@login_required(login_url='main:b3921b')
 def salsemanorders(request, str_id):
     orders=Order.objects.get(code=str_id)
     items=Orderitem.objects.filter(order=orders.id)
@@ -882,7 +882,7 @@ def addclient(request):
 
 def logoutuser(request):
     logout(request)
-    return redirect('main:loginpage')
+    return redirect('main:b3921b')
 
 
 def aboutus(request):
@@ -904,16 +904,16 @@ def create_product(request):
     product.save()
     return redirect('create')
 
-@user_passes_test(tocatalog, login_url='main:loginpage')
+@user_passes_test(tocatalog, login_url='main:b3921b')
 def cart(request):
     clients=Client.objects.all()
     return render(request, 'cart.html', {'title':'Panier', 'clients':clients})
 
-@user_passes_test(tocatalog, login_url='main:loginpage')
+@user_passes_test(tocatalog, login_url='main:b3921b')
 def replicata(request):
     return render(request, 'replicata.html', {'title':'Reliquat'})
 
-@user_passes_test(tocatalog, login_url='main:loginpage')
+@user_passes_test(tocatalog, login_url='main:b3921b')
 def catalogpermission(request):
     password=request.GET.get('password')
     if password and password=='0000':

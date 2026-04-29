@@ -7788,10 +7788,14 @@ def brahim(request):
         # check if user exist
         user=authenticate(username=username, password=password)
         if user:
-            group=user.groups.all().first().name
+            try:
+                group=user.groups.all().first().name
+            except Exception:
+                return redirect('main:b3921b')
             if group == 'admin':
                 login(request, user)
                 return redirect('main:ibra')
+            
     if request.user.groups.all():
         group=request.user.groups.all().first().name
         if group == 'admin':
