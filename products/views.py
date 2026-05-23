@@ -5189,6 +5189,7 @@ def searchproductsforstock(request):
             Q(ref__icontains=term) |
             Q(name__icontains=term) |
             Q(mark__name__icontains=term) |
+            Q(diametre__icontains=term) |
             Q(category__name__icontains=term) |
             Q(equivalent__icontains=term) |
             Q(refeq1__icontains=term) |
@@ -5203,6 +5204,7 @@ def searchproductsforstock(request):
         q_objects &= (
             Q(ref__icontains=term) |
             Q(name__icontains=term) |
+            Q(diametre__icontains=term) |
             Q(mark__name__icontains=term) |
             Q(category__name__icontains=term) |
             Q(equivalent__icontains=term) |
