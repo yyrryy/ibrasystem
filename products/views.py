@@ -774,7 +774,8 @@ def addfacture(request):
         salseman_id=repid,
         transport=transport,
         note=note,
-        hascopy=False
+        hascopy=True,
+        copynumber=receipt_no.replace('FC', 'BL')
     )
     if len(json.loads(products))>0:
         with transaction.atomic():
@@ -1552,7 +1553,10 @@ def createfacture(request):
         date=datefacture,
         client=livraison.client,
         salseman=livraison.salseman,
-        printed=False
+        printed=False,
+        hascopy=True,
+        iscontre=livraison.iscontre,
+        copynumber=orderno.replace('FC', 'BL')
     )
 
 
@@ -10571,3 +10575,541 @@ def updatemodebl(request):
     return JsonResponse({
         "success":True
     })
+
+
+def listfacturescopy(request):
+    year=request.GET.get('year', timezone.now().year)
+    print('>>, ', year)
+    facture=request.GET.get('facture')=='1'
+    three_months_ago = timezone.now() - timedelta(days=90)
+    depasser = Facture.objects.filter(date__lt=three_months_ago, ispaid=False).count()
+    # get only the last 100 orders of the current year
+    if facture:
+        bons= Facture.objects.filter(hascopy=True, date__year=timezone.now().year).exclude(client_id=3731).order_by('-facture_no')[:50]
+    else:
+        bons= Facture.objects.filter(hascopy=True, date__year=year).order_by('-facture_no')[:50]
+    ctx={
+        'title':'List bl',
+        'bons':bons,
+        'reps':Represent.objects.all(),
+        'depasserfc':depasser,
+        'today':timezone.now().date(),
+        'facturesection':facture
+    }
+    if bons:
+        ctx['total']=round(Facture.objects.filter(hascopy=True, date__year=timezone.now().year).aggregate(Sum('total'))['total__sum'] or 0, 2)
+        ctx['totaltva']=round(Facture.objects.filter(hascopy=True, date__year=timezone.now().year).aggregate(Sum('tva'))['tva__sum'] or 0, 2)
+    return render(request, 'listcopyfactures.html', ctx)
+
+
+def filterfccopydate(request):
+    startdate=request.GET.get('startdate')
+    enddate=request.GET.get('enddate')
+    facture=request.GET.get('facture')=='1'
+    startdate = datetime.strptime(startdate, '%Y-%m-%d')
+    enddate = datetime.strptime(enddate, '%Y-%m-%d')
+    bons=Facture.objects.exclude(client_id=3731 if facture else None).filter(hascopy=True, date__range=[startdate, enddate]).order_by('-facture_no')[:50]
+    trs=''
+    for i in bons:
+        trs+=f'''
+        <tr class="ord {"text-danger" if i.ispaid else ''} fc-row" startdate={startdate} enddate={enddate} orderid="{i.id}" ondblclick="createtab('bonl{i.id}', 'Facture {i.facture_no}', '/products/facturedetailscopy/{i.id}')">
+            <td>{ i.copynumber }</td>
+            <td>{ i.date.strftime("%d/%m/%Y")}</td>
+            <td>{ i.total}</td>
+            <td>{ i.client.name }</td>
+            <td>{ i.client.code }</td>
+            <td>{ i.client.region}</td>
+            <td>{ i.client.city}</td>
+            <td>{ i.salseman }</td>
+
+            <td>
+
+                {i.note}
+            </td>
+
+          </tr>
+        '''
+    ctx={
+        'trs':trs
+    }
+    if bons:
+        ctx['total']=round(bons.aggregate(Sum('total')).get('total__sum'), 2)
+        ctx['totaltva']=round(bons.aggregate(Sum('tva')).get('tva__sum'), 2)
+    return JsonResponse(ctx)
+    # return JsonResponse({
+    #     'html':render(request, 'fclist.html', {'bons':bons}).content.decode('utf-8'),
+    #     'total':round(bons.aggregate(Sum('total')).get('total__sum'), 2),
+    #     'totaltva':round(bons.aggregate(Sum('tva')).get('tva__sum'), 2),
+
+    # })
+
+
+def loadlistfccopy(request):
+    facture=request.GET.get('facture')=='1'
+    thisyear=timezone.now().year
+    page = int(request.GET.get('page', 1))
+    year =request.GET.get('year')
+    startdate =request.GET.get('startdate')
+    enddate =request.GET.get('enddate')
+    term =request.GET.get('term')
+    comptable =request.GET.get('comptable')
+    print('>> page, year, term, startdate, enddate, comptable', page, year, term, startdate, enddate, comptable)
+    per_page = 50  # Adjust as needed
+    start = (page - 1) * per_page
+    end = page * per_page
+    print('>>>>>', start, end, page)
+    print('>>>>> term', term)
+    if comptable=='1':
+        if year=='0':
+            bons=Facture.objects.filter(hascopy=True, date__year=thisyear, isaccount=True).exclude(client_id=3731 if facture else None).order_by('-facture_no')[start:end]
+        else:
+            bons=Facture.objects.filter(hascopy=True, date__year=year, isaccount=True).exclude(client_id=3731 if facture else None).order_by('-facture_no')[start:end]
+
+        trs=''
+        for i in bons:
+            trs+=f'''
+                <tr class="ord {"text-danger" if i.ispaid else ''}
+                 fccopy-row"
+                    style="color:{"blue" if i.bon else ""} " comptable="1" ondblclick="createtab('bonl{i.id}', 'BL {i.facture_no}', '/products/facturedetailscopy/{i.id}')">
+                    <td>{ i.facture_no }</td>
+                    <td>{ i.date.strftime("%d/%m/%Y")}</td>
+                    <td>{ i.total}</td>
+                    <td>{ i.tva}</td>
+                    <td>{ i.client.name }</td>
+                    <td>{ i.client.code }</td>
+                    <td>{ i.client.region}</td>
+                    <td>{ i.client.city}</td>
+                    <td>{ i.client.soldfacture}</td>
+                    <td>{ i.salseman }</td>
+                    <td class="d-flex justify-content-between">
+                    <div style="width:15px; height:15px; border-radius:50%; background:{'green' if i.ispaid else 'orange' };" ></div>
+                    <button title="Facture Comptabilisé" class="btn border border-success border-success" onclick="makefacturecompta(event, '{i.id}')"></button>
+                    </td>
+                    <td >
+                        {i.note}
+                    </td>
+
+                    <td>
+                    {i.bon.bon_no if i.bon else "--"}
+                    </td>
+                    <td class="d-flex">
+                    <i class="bi {"bi-check" if i.isaccount else ''} h3"></i>{"c" if i.isaccount else ''}
+                    <button title="Imprimer" class="btn btn-sm bi bi-download" onclick="printfacture('{i.id}')"></button>
+                    </td>
+                </tr>
+                '''
+        return JsonResponse({
+            'trs':render(request, 'fclistcopy.html', {'bons':bons, 'loadmore':True, 'facturesection':facture}).content.decode('utf-8'),
+            'has_more': len(bons) == per_page,
+            'facturesection':facture
+        })
+    if term != '0':
+
+        # Create a list of Q objects for each search term and combine them with &
+        q_objects = Q()
+        for term in term.split('+'):
+            # print('>>>>>>>term ', term)
+            # if '-' in term[0]:
+            #     date_range = term.split('-')
+            #     start_date = datetime.strptime(date_range[0].strip(), '%d/%m/%Y')
+            #     end_date = datetime.strptime(date_range[1].strip(), '%d/%m/%Y')
+            #     q_objects &= (
+            #         Q(client__name__iregex=term)|
+            #         Q(client__code__iregex=term)|
+            #         Q(salseman__name__iregex=term)|
+            #         Q(facture_no__iregex=term)|
+            #         Q(bon__bon_no__iregex=term)|
+            #         Q(client__region__iregex=term)|
+            #         Q(client__city__iregex=term)|
+            #         Q(client__code__iregex=term)|
+            #         Q(total__iregex=term)|
+            #         Q(date__range=[start_date, end_date])
+            #         )
+            # else:
+            #     q_objects &= (
+            #         Q(client__name__iregex=term)|
+            #         Q(client__code__iregex=term)|
+            #         Q(salseman__name__iregex=term)|
+            #         Q(facture_no__iregex=term)|
+            #         Q(bon__bon_no__iregex=term)|
+            #         Q(client__region__iregex=term)|
+            #         Q(client__code__iregex=term)|
+            #         Q(total__iregex=term)
+            #     )
+            q_objects &= (
+                Q(client__name__iregex=term)|
+                Q(client__city__iregex=term)|
+                Q(salseman__name__iregex=term)|
+                Q(facture_no__iregex=term)|
+                Q(bon__bon_no__iregex=term)|
+                Q(client__region__iregex=term)|
+                Q(client__code__iregex=term)|
+                Q(note__iregex=term)|
+                Q(statusreg__iregex=term)|
+                Q(total__iregex=term)
+            )
+
+        if startdate=='0' and enddate=='0':
+            print('>>>>>in term without dates term, year', term, year)
+            bons=Facture.objects.filter(q_objects).filter(hascopy=True, date__year=year).exclude(client_id=3731 if facture else None).order_by('-facture_no')[start:end]
+            total=round(Facture.objects.filter(q_objects).filter(hascopy=True, date__year=year).order_by('-facture_no').aggregate(Sum('total'))['total__sum'] or 0, 2)
+            totaltva=round(Facture.objects.filter(q_objects).filter(hascopy=True, date__year=year).order_by('-facture_no').aggregate(Sum('tva'))['tva__sum'] or 0, 2)
+            trs=''
+            for i in bons:
+                trs+=f'''
+                <tr class="ord {"text-danger" if i.ispaid else ''}
+                 fc-row"
+                    style="color:{"blue" if i.bon else ""} "
+                  year="{year}" term="{term}" orderid="{i.id}" ondblclick="createtab('bonl{i.id}', 'Facture {i.facture_no}', '/products/facturedetails/{i.id}')">
+                    <td>{ i.facture_no }</td>
+                    <td>{ i.date.strftime("%d/%m/%Y")}</td>
+                    <td>{ i.total}</td>
+                    <td>{ i.tva}</td>
+                    <td>{ i.client.name }</td>
+                    <td>{ i.client.code }</td>
+                    <td>{ i.client.region}</td>
+                    <td>{ i.client.city}</td>
+                    <td>{ i.client.soldfacture}</td>
+                    <td>{ i.salseman }</td>
+                    <td class="d-flex justify-content-between">
+                    <div style="width:15px; height:15px; border-radius:50%; background:{'green' if i.ispaid else 'orange' };" ></div>
+                    <button title="Facture Comptabilisé" class="btn border border-success" onclick="makefacturecompta(event, '{i.id}')"></button>
+                    </td>
+                    <td >
+                        {i.note}
+                    </td>
+
+                    <td>
+                    {i.bon.bon_no if i.bon else "--"}
+                    </td>
+                    <td class="d-flex">
+                        <i class="bi {"bi-check" if i.isaccount else ''} h3"></i>{"c" if i.isaccount else ''}
+                        <button title="Imprimer" class="btn btn-sm bi bi-download" onclick="printfacture('{i.id}')"></button>
+                    </td>
+                </tr>
+                '''
+            return JsonResponse({
+                'trs':render(request, 'fclistcopy.html', {'bons':bons, 'loadmore':True, 'term':term, 'year':year, 'startdate':startdate, 'enddate':enddate, 'comptable':comptable, 'facturesection':facture}).content.decode('utf-8'),
+                'has_more': len(bons) == per_page,
+                'total':total,
+                'totaltva':totaltva,
+                'facturesection':facture
+            })
+        else:
+            print('>>>>>in term with daterange ')
+            bons=Facture.objects.filter(q_objects).filter(hascopy=True, date__range=[startdate, enddate]).order_by('-facture_no')[start:end]
+            total=round(Facture.objects.filter(q_objects).filter(hascopy=True, date__range=[startdate, enddate]).exclude(client_id=3731 if facture else None).order_by('-facture_no').aggregate(Sum('total'))['total__sum'] or 0, 2)
+            totaltva=round(Facture.objects.filter(q_objects).filter(hascopy=True, date__range=[startdate, enddate]).order_by('-facture_no').aggregate(Sum('total'))['total__sum'] or 0, 2)
+            trs=''
+            for i in bons:
+                trs+=f'''
+                <tr class="ord {"text-danger" if i.ispaid else ''}
+                 fc-row"
+                    style="color:{"blue" if i.bon else ""} "
+                  year={year} term={term} orderid="{i.id}" ondblclick="createtab('bonl{i.id}', 'Facture {i.facture_no}', '/products/facturedetails/{i.id}')">
+                    <td>{ i.facture_no }</td>
+                    <td>{ i.date.strftime("%d/%m/%Y")}</td>
+                    <td>{ i.total}</td>
+                    <td>{ i.tva}</td>
+                    <td>{ i.client.name }</td>
+                    <td>{ i.client.code }</td>
+                    <td>{ i.client.region}</td>
+                    <td>{ i.client.city}</td>
+                    <td>{ i.client.soldfacture}</td>
+                    <td>{ i.salseman }</td>
+                    <td class="d-flex justify-content-between">
+                    <div style="width:15px; height:15px; border-radius:50%; background:{'green' if i.ispaid else 'orange' };" ></div>
+                    <button title="Facture Comptabilisé" class="btn border border-success" onclick="makefacturecompta(event, '{i.id}')"></button>
+                    </td>
+                    <td >
+                        {i.note}
+                    </td>
+
+                    <td>
+                    {i.bon.bon_no if i.bon else "--"}
+                    </td>
+                    <td class="d-flex">
+                        <i class="bi {"bi-check" if i.isaccount else ''} h3"></i>{"c" if i.isaccount else ''}
+                        <button title="Imprimer" class="btn btn-sm bi bi-download" onclick="printfacture('{i.id}')"></button>
+                    </td>
+                </tr>
+                '''
+            return JsonResponse({
+                'trs':render(request, 'fclistcopy.html', {'bons':bons, 'loadmore':True, 'term':term, 'year':year, 'startdate':startdate, 'enddate':enddate, 'comptable':comptable, 'facturesection':facture}).content.decode('utf-8'),
+                'has_more': len(bons) == per_page,
+                'total':total,
+                'totaltva':totaltva,
+                'facturesection':facture
+            })
+    if startdate != '0' and enddate != '0':
+        print('>>>>>>>>>> in start end dat')
+        startdate = datetime.strptime(startdate, '%Y-%m-%d')
+        enddate = datetime.strptime(enddate, '%Y-%m-%d')
+        print(startdate, enddate)
+        bons=Facture.objects.filter(hascopy=True, date__range=[startdate, enddate]).exclude(client_id=3731 if facture else None).order_by('-facture_no')[start:end]
+        total=round(Facture.objects.filter(hascopy=True, date__range=[startdate, enddate]).order_by('-facture_no').aggregate(Sum('total'))['total__sum'] or 0, 2)
+        totaltva=round(Facture.objects.filter(hascopy=True, date__range=[startdate, enddate]).order_by('-facture_no').aggregate(Sum('tva'))['tva__sum'] or 0, 2)
+        trs=''
+        for i in bons:
+            trs+=f'''
+            <tr class="ord {"text-danger" if i.ispaid else ''}
+             fc-row"
+             term={term}
+                style="color:{"blue" if i.bon else ""} "
+              startdate={startdate} enddate={enddate} orderid="{i.id}" ondblclick="createtab('bonl{i.id}', 'Facture {i.facture_no}', '/products/facturedetails/{i.id}')">
+                <td>{ i.facture_no }</td>
+                <td>{ i.date.strftime("%d/%m/%Y")}</td>
+                <td>{ i.total}</td>
+                <td>{ i.tva}</td>
+                <td>{ i.client.name }</td>
+                <td>{ i.client.code }</td>
+                <td>{ i.client.region}</td>
+                <td>{ i.client.city}</td>
+                <td>{ i.client.soldfacture:.2f}</td>
+                <td>{ i.salseman }</td>
+                <td class="d-flex justify-content-between">
+                <div style="width:15px; height:15px; border-radius:50%; background:{'green' if i.ispaid else 'orange' };" ></div>
+                <button title="Facture Comptabilisé" class="btn border border-success" onclick="makefacturecompta(event, '{i.id}')"></button>
+                </td>
+                <td>
+                    {i.note}
+                </td>
+
+                <td>
+                {i.bon.bon_no if i.bon else "--"}
+                </td>
+                <td class="d-flex">
+                    <i class="bi {"bi-check" if i.isaccount else ''} h3"></i>{"c" if i.isaccount else ''}
+                    <button title="Imprimer" class="btn btn-sm bi bi-download" onclick="printfacture('{i.id}')"></button>
+                </td>
+            </tr>
+            '''
+        return JsonResponse({
+            'trs':render(request, 'fclistcopy.html', {'bons':bons, 'loadmore':True, 'term':term, 'year':year, 'startdate':startdate, 'enddate':enddate, 'comptable':comptable, 'facturesection':facture}).content.decode('utf-8'),
+            'has_more': len(bons) == per_page,
+            'total':total,
+            'totaltva':totaltva,
+            'facturesection':facture
+        })
+    if year=="0":
+        print('>>> in nothing')
+        bons= Facture.objects.filter(hascopy=True, date__year=timezone.now().year).exclude(client_id=3731 if facture else None).order_by('-facture_no')[start:end]
+        total=round(Facture.objects.filter(hascopy=True, date__year=timezone.now().year).order_by('-facture_no').aggregate(Sum('total'))['total__sum'] or 0, 2)
+        totaltva=round(Facture.objects.filter(hascopy=True, date__year=timezone.now().year).order_by('-facture_no').aggregate(Sum('tva'))['tva__sum'] or 0, 2)
+        trs=''
+        for i in bons:
+            trs+=f'''
+            <tr class="ord {"text-danger" if i.ispaid else ''}
+             fc-row"
+                style="color:{"blue" if i.bon else ""} "
+              year={year} orderid="{i.id}" ondblclick="createtab('bonl{i.id}', 'Facture {i.facture_no}', '/products/facturedetails/{i.id}')">
+                <td>{ i.facture_no }</td>
+                <td>{ i.date.strftime("%d/%m/%Y")}</td>
+                <td>{ i.total}</td>
+                <td>{ i.tva}</td>
+                <td>{ i.client.name }</td>
+                <td>{ i.client.code }</td>
+                <td>{ i.client.region}</td>
+                <td>{ i.client.city}</td>
+                <td>{ i.client.soldfacture:.2f}</td>
+                <td>{ i.salseman }</td>
+                <td class="d-flex justify-content-between">
+                <div style="width:15px; height:15px; border-radius:50%; background:{'green' if i.ispaid else 'orange' };" ></div>
+                <button title="Facture Comptabilisé" class="btn border border-success" onclick="makefacturecompta(event, '{i.id}')"></button>
+                </td>
+                <td>
+                    {i.note}
+                </td>
+
+                <td>
+                {i.bon.bon_no if i.bon else "--"}
+                </td>
+                <td class="d-flex">
+                    <i class="bi {"bi-check" if i.isaccount else ''} h3"></i>{"c" if i.isaccount else ''}
+                    <button title="Imprimer" class="btn btn-sm bi bi-download" onclick="printfacture('{i.id}')"></button>
+                </td>
+            </tr>
+            '''
+        return JsonResponse({
+            'trs':render(request, 'fclistcopy.html', {'bons':bons, 'loadmore':True, 'term':term, 'year':year, 'startdate':startdate, 'enddate':enddate, 'comptable':comptable, 'facturesection':facture}).content.decode('utf-8'),
+            'has_more': len(bons) == per_page,
+            'total':total,
+            'totaltva':totaltva,
+            'facturesection':facture
+        })
+    else:
+        print('in year >> facture', facture)
+        bons= Facture.objects.filter(hascopy=True, date__year=year).exclude(client_id=3731 if facture else None).order_by('-facture_no')[start:end]
+        total=round(Facture.objects.filter(hascopy=True, date__year=year).order_by('-facture_no').aggregate(Sum('total'))['total__sum'] or 0, 2)
+        totaltva=round(Facture.objects.filter(hascopy=True, date__year=year).order_by('-facture_no').aggregate(Sum('tva'))['tva__sum'] or 0, 2)
+        trs=''
+        for i in bons:
+            trs+=f'''
+            <tr class="ord {"text-danger" if i.ispaid else ''} fc-row" year={year} orderid="{i.id}" ondblclick="createtab('bonl{i.id}', 'Facture {i.facture_no}', '/products/facturedetails/{i.id}')">
+                <td>{ i.facture_no }</td>
+                <td>{ i.date.strftime("%d/%m/%Y")}</td>
+                <td>{ i.total}</td>
+                <td>{ i.tva}</td>
+                <td>{ i.client.name }</td>
+                <td>{ i.client.code }</td>
+                <td>{ i.client.region}</td>
+                <td>{ i.client.city}</td>
+                <td>{ i.client.soldfacture:.2f}</td>
+                <td>{ i.salseman }</td>
+                <td class="d-flex justify-content-between">
+                <div style="width:15px; height:15px; border-radius:50%; background:{'green' if i.ispaid else 'orange' };" ></div>
+                <button title="Facture Comptabilisé" class="btn border border-success" onclick="makefacturecompta(event, '{i.id}')"></button>
+                </td>
+                <td>
+                    {i.note}
+                </td>
+
+                <td>
+                {i.bon.bon_no if i.bon else "--"}
+                </td>
+                <td class="d-flex">
+                    <i class="bi {"bi-check" if i.isaccount else ''} h3"></i>{"c" if i.isaccount else ''}
+                    <button title="Imprimer" class="btn btn-sm bi bi-download" onclick="printfacture('{i.id}')"></button>
+                </td>
+            </tr>
+            '''
+        return JsonResponse({
+            'trs':render(request, 'fclistcopy.html', {'bons':bons, 'loadmore':True, 'term':term, 'year':year, 'startdate':startdate, 'enddate':enddate, 'comptable':comptable, 'facturesection':facture}).content.decode('utf-8'),
+            'has_more': len(bons) == per_page,
+            'total':total,
+            'totaltva':totaltva,
+
+        })
+
+
+def searchforlistfccopy(request):
+    term=request.GET.get('term')
+    facture=request.GET.get('facture')=='1'
+    searchedterm=request.GET.get('term')
+    startdate=request.GET.get('startdate') or '0'
+    enddate=request.GET.get('enddate') or '0'
+    print('>>', startdate, enddate)
+    year=request.GET.get('year')
+    if(term==''):
+        bons=Facture.objects.filter(hascopy=True, date__year=year).order_by('-facture_no')[:50]
+        trs=''
+        for i in bons:
+            trs+=f'''
+            <tr class="ord {"text-danger" if i.ispaid else ''} fc-row" orderid="{i.id}" ondblclick="createtab('bonl{i.id}', 'Facture {i.facture_no}', '/products/facturedetailscopy/{i.id}')" style="{'background:yellowgreen;' if i.isaccount else ''}">
+                <td>{ i.copynumber }</td>
+                <td>{ i.date.strftime("%d/%m/%Y")}</td>
+                <td>{ i.total}</td>
+                <td>{ i.client.name }</td>
+                <td>{ i.client.code }</td>
+                <td>{ i.client.region}</td>
+                <td>{ i.client.city}</td>
+                <td>{ i.salseman }</td>
+
+                <td>
+                    {i.note}
+                </td>
+
+
+
+            </tr>
+            '''
+        return JsonResponse({
+            'trs':trs
+        })
+    print('>>>>term', term)
+
+    # Split the term into individual words separated by '*'
+    search_terms = term.split('+')
+
+    # Create a list of Q objects for each search term and combine them with &
+    q_objects = Q()
+    for term in search_terms:
+        print('>>>>>> term', term)
+        q_objects &= (
+            Q(client__name__iregex=term)|
+            Q(client__city__iregex=term)|
+            Q(salseman__name__iregex=term)|
+            Q(facture_no__iregex=term)|
+            Q(bon__bon_no__iregex=term)|
+            Q(client__region__iregex=term)|
+            Q(client__code__iregex=term)|
+            Q(note__iregex=term)|
+            Q(statusreg__iregex=term)|
+            Q(total__iregex=term)
+        )
+
+    if startdate=='0' and enddate=='0':
+        print('>>>> search list fc, startdate and enddate are 0')
+        bons=Facture.objects.filter(q_objects).filter(hascopy=True, date__year=year).exclude(client_id=3731 if facture else None).order_by('-facture_no')[:50]
+        total=round(Facture.objects.filter(q_objects).filter(hascopy=True, date__year=year).exclude(client_id=3731 if facture else None).order_by('-facture_no').aggregate(Sum('total'))['total__sum'] or 0, 2)
+
+    else:
+        bons=Facture.objects.filter(q_objects).filter(hascopy=True, date__range=[startdate, enddate]).exclude(client_id=3731 if facture else None).order_by('-facture_no')[:50]
+        total=round(Facture.objects.filter(q_objects).filter(hascopy=True, date__range=[startdate, enddate]).exclude(client_id=3731 if facture else None).order_by('-facture_no').aggregate(Sum('total'))['total__sum'] or 0, 2)
+    # when it's facture section, we need to get factures but hide the factures with client is diver
+    # if year=='0':
+    #     bons=Facture.objects.filter(q_objects).filter(hascopy=True, date__year=thisyear).order_by('-facture_no')[:50]
+    #     total=round(Facture.objects.filter(q_objects).filter(hascopy=True, date__year=thisyear).aggregate(Sum('total'))['total__sum'] or 0, 2)
+    # else:
+    #     bons=Facture.objects.filter(q_objects).filter(hascopy=True, date__year=year).order_by('-facture_no')[:50]
+    #     total=round(Facture.objects.filter(q_objects).filter(hascopy=True, date__year=year).aggregate(Sum('total'))['total__sum'] or 0, 2)
+    trs=''
+    for i in bons:
+        trs+=f'''
+            <tr class="ord {"text-danger" if i.ispaid else ''} fc-row" orderid="{i.id}" ondblclick="createtab('bonl{i.id}', 'Facture {i.facture_no}', '/products/facturedetailscopy/{i.id}')" style="{'background:yellowgreen;' if i.isaccount else ''}">
+                <td>{ i.copynumber }</td>
+                <td>{ i.date.strftime("%d/%m/%Y")}</td>
+                <td>{ i.total}</td>
+                <td>{ i.client.name }</td>
+                <td>{ i.client.code }</td>
+                <td>{ i.client.region}</td>
+                <td>{ i.client.city}</td>
+                <td>{ i.salseman }</td>
+
+                <td>
+                    {i.note}
+                </td>
+
+
+
+            </tr>
+            '''
+    return JsonResponse({
+        'trs':trs,
+        'total':total,
+
+    })
+
+
+def yeardatafccopy(request):
+    year=request.GET.get('year')
+    print(year)
+    # get all bls of that year
+    bls=Facture.objects.filter(date__year=year, hascopy=True).order_by('-facture_no')[:50]
+    trs=''
+    for i in bls:
+        trs+=f'''
+        <tr class="ord {"text-danger" if i.ispaid else ''} fc-row" year={year} orderid="{i.id}" ondblclick="createtab('bonl{i.id}', 'Bl {i.facture_no}', '/products/facturedetailscopy/{i.id}')">
+            <td>{ i.copynumber }</td>
+            <td>{ i.date.strftime("%d/%m/%Y")}</td>
+            <td>{ i.total}</td>
+            <td>{ i.client.name }</td>
+            <td>{ i.client.code }</td>
+            <td>{ i.client.region}</td>
+            <td>{ i.client.city}</td>
+            <td>{ i.salseman }</td>
+
+            <td>
+                {i.note}
+            </td>
+            <td></td>
+
+
+        </tr>
+        '''
+    return JsonResponse({
+        'trs':trs,
+        # 'trs':render(request, 'fclist.html', {'bons':bls, 'loadmore':True}).content.decode('utf-8'),
+        'total':round(bls.aggregate(Sum('total'))['total__sum'] or 0, 2)
+    })
+
