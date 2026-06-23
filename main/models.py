@@ -373,7 +373,7 @@ class Facture(models.Model):
     printed = models.BooleanField(default=False)
     hascopy = models.BooleanField(default=False)
     iscontre = models.BooleanField(default=False)
-    
+    copynumber=models.CharField(max_length=500, null=True, default=None)
     note=models.TextField(default=None, null=True, blank=True)
     # true if facture is accounting
     isaccount=models.BooleanField(default=False)

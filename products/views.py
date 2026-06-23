@@ -1555,7 +1555,7 @@ def createfacture(request):
         salseman=livraison.salseman,
         printed=False,
         hascopy=True,
-        iscontre=livraison.iscontre,
+        #iscontre=livraison.iscontre,
         copynumber=orderno.replace('FC', 'BL')
     )
 
