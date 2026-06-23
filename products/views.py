@@ -11113,3 +11113,22 @@ def yeardatafccopy(request):
         'total':round(bls.aggregate(Sum('total'))['total__sum'] or 0, 2)
     })
 
+def facturedetailscopy(request, id):
+    order=Facture.objects.get(pk=id)
+    orderitems=Outfacture.objects.filter(facture=order).order_by('product__name')
+    # split the orderitems into chunks of 10 items
+    orderitems=list(orderitems)
+    orderitems=[orderitems[i:i+30] for i in range(0, len(orderitems), 30)]
+    reglements=order.reglementsfc.all()
+    print('>>>>> reglements', reglements)
+    ctx={
+        'title':f'Facture {order.facture_no}',
+        'facture':order,
+        'orderitems':orderitems,
+        'tva':order.tva,
+        'ttc':order.total,
+        'ht':round(order.total-order.tva, 2),
+        'reps':Represent.objects.all(),
+        'reglements':reglements
+    }
+    return render(request, 'facturedetailscopy.html', ctx)
