@@ -120,7 +120,7 @@
         </thead>
         <tbody class="listfccopybody">
           {% for order in bons %}
-            <tr class="ord {% if order.ispaid %}text-danger{% endif %} fccopy-row" orderid="{{order.code}}" ondblclick="createtab('bl{{order.id}}', 'Bl {{order.facture_no}}', '/products/facturedetailscopy/{{order.id}}')"
+            <tr class="ord {% if order.ispaid %}text-danger{% endif %} fccopy-row" orderid="{{order.code}}" ondblclick="createtab('{{order.copynumber}}', 'Bl {{order.facture_no}}', '/products/facturedetailscopy/{{order.id}}')"
               style="{% if order.bon %} color: blue; {% endif %}{% if order.isaccount %}background:yellowgreen;{% endif %}"
             >
               <td>{{ order.copynumber }}</td>
